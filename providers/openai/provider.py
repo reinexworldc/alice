@@ -1,24 +1,26 @@
 from pydantic import BaseModel
 from core.provider import BaseProvider
-from openai import AsyncOpenAI
-from .config import OpenAIConfig
+from openai import OpenAI
 
 class OpenAIProvider(BaseProvider):
     def __init__(
         self, 
-        client: AsyncOpenAI, 
-        config: OpenAIConfig
+        client: OpenAI, 
     ):
         self.client = client
-        self.config = config
-    # Api mismatch >> self.client.responses.create 
-    async def async_model_call(
+    def model_call(
             self, 
-            input_content: str
+            input_content: str,
+            model: str,
+            stream: bool
         ) -> str:
-        response = await self.client.responses.create(
-            model=self.config.model,
-            input=input_content    
+        response = self.client.responses.create(
+            model=model,
+            input=input_content,    
+            stream=stream
         )
 
-        return response.output_text
+        if stream:
+            return response
+        else:
+            return response.content

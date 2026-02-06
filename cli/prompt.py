@@ -1,21 +1,14 @@
 from prompt_toolkit import PromptSession
 from prompt_toolkit.formatted_text import HTML
-from pydantic import BaseModel, Field, PrivateAttr
-from ...views.kb import KeyBindingSettings
+from cli.views.kb import KeyBindingSettings
 
 
-class PromptSessionController(BaseModel):
-    kb_settings: KeyBindingSettings = Field(default_factory=KeyBindingSettings)
-
-    _session: PromptSession = PrivateAttr()
-
-    model_config = {"arbitrary_types_allowed": True}
-
-    def model_post_init(self, __):
-        """Create session after Pydantic initialization"""
+class PromptSessionController:
+    def __init__(self):
+        self.kb_settings = KeyBindingSettings()
         self._session = self._create_prompt_session()
 
-    def _create_prompt_session(self):
+    def _create_prompt_session(self) -> PromptSession:
         return PromptSession(
             message=HTML("<prompt> </prompt>"),
             multiline=True,

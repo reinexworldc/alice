@@ -1,5 +1,5 @@
 from prompt_toolkit.formatted_text import HTML
-from cli.controllers.prompt.prompt import PromptSessionController
+from cli.prompt import PromptSessionController
 from core.agent import ChatAgent
 from providers.openai.provider import OpenAIProvider
 

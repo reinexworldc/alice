@@ -1,16 +1,9 @@
 from prompt_toolkit.key_binding import KeyBindings
-from pydantic import BaseModel, Field
 
-# Key Bindings
 
-class KeyBindingSettings(BaseModel):
-    kb: KeyBindings = Field(default_factory=KeyBindings)
-    
-    model_config = {
-        'arbitrary_types_allowed': True     
-    }
-    
-    def model_post_init(self, __):
+class KeyBindingSettings:
+    def __init__(self):
+        self.kb = KeyBindings()
         self._setup_bindings()
 
     def _setup_bindings(self):
@@ -29,7 +22,7 @@ class KeyBindingSettings(BaseModel):
         @self.kb.add("tab")
         def _(event):
             """Tab inserts indentation"""
-            event.current_buffer.insert_text("    ") 
+            event.current_buffer.insert_text("    ")
 
     def get_bindings(self):
         return self.kb

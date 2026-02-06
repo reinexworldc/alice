@@ -13,7 +13,7 @@ class PromptSessionController:
             message=HTML("<prompt> </prompt>"),
             multiline=True,
             key_bindings=self.kb_settings.get_bindings(),
-            prompt_continuation=(lambda width, line_number, is_soft_wrap: "... "),
+            prompt_continuation=(lambda width, line_number, is_soft_wrap: ""),
         )
 
     @property

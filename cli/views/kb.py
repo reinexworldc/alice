@@ -24,5 +24,10 @@ class KeyBindingSettings:
             """Tab inserts indentation"""
             event.current_buffer.insert_text("    ")
 
+        @self.kb.add("c-c")
+        def _(event):
+            """Ctrl+C exits the application"""
+            event.app.exit()
+
     def get_bindings(self):
         return self.kb

@@ -15,19 +15,19 @@ def main():
     
     while True:
         try:
-            text = session.prompt(
+            message = session.prompt(
                 "",
                 default="",
                 validate_while_typing=False,
             )
             
-            if not text.strip():
+            if not message.strip():
                 continue
                 
-            if text.strip().lower() in ["exit", "quit", "q"]:
+            if message.strip().lower() in ["exit", "quit", "q"]:
                 break
 
-            for chunk in agent.stream(text):
+            for chunk in agent.llm_output(message):
                 parser.parse(chunk=chunk)
             print()
                     

@@ -6,17 +6,17 @@ class OpenAIProvider(LLMProvider):
     def __init__(self, client: OpenAI | None = None):
         self.client = client or OpenAI()
 
-    def generate(self, prompt: str) -> str:
+    def output_generate(self, prompt: str, messages: list[dict]) -> str:
         response = self.client.chat.completions.create(
             model="gpt-5.2",
-            messages=[{"role": "user", "content": prompt}],
+            messages=messages
         )
         return response.choices[0].message.content
 
-    def stream(self, prompt: str):
+    def output_stream(self, prompt: str, messages: list[dict]):
         stream = self.client.chat.completions.create(
             model="gpt-5.2",
-            messages=[{"role": "user", "content": prompt}],
+            messages=messages,
             stream=True,
         )
         for chunk in stream:

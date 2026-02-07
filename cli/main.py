@@ -1,14 +1,7 @@
-from prompt_toolkit.formatted_text import HTML
-from prompt_toolkit import print_formatted_text
 from cli.prompt import PromptSessionController
 from core.agent import ChatAgent
 from providers.openai.provider import OpenAIProvider
-import os
-from rich.console import Console, Group
-from rich.markdown import Markdown
-from rich.live import Live
-from rich.panel import Panel
-import sys
+from rich.console import Console
 from .views.parser import ChunkParser
 
 def main():

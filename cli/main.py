@@ -4,25 +4,26 @@ from cli.prompt import PromptSessionController
 from core.agent import ChatAgent
 from providers.openai.provider import OpenAIProvider
 import os
-from rich.console import Console
+from rich.console import Console, Group
 from rich.markdown import Markdown
 from rich.live import Live
+from rich.panel import Panel
+import sys
+from .views.parser import ChunkParser
 
 def main():
     agent = ChatAgent(OpenAIProvider())
     controller = PromptSessionController()
+    parser = ChunkParser()
     session = controller.session
     console = Console()
-    
-    os.system('cls' if os.name == 'nt' else 'clear')
+
+    console.clear()
     
     while True:
         try:
             text = session.prompt(
                 "",
-                bottom_toolbar=HTML(
-                    "<hint>Enter: newline * Escape+Enter: send * Tab: indent</hint>"
-                ),
                 default="",
                 validate_while_typing=False,
             )
@@ -33,13 +34,10 @@ def main():
             if text.strip().lower() in ["exit", "quit", "q"]:
                 break
 
-            full_response = ""
-            with Live(console=console, refresh_per_second=10) as live:
-                for chunk in agent.stream(text):
-                    full_response += chunk
-                    md = Markdown(full_response)
-                    live.update(md)
-
+            for chunk in agent.stream(text):
+                parser.parse(chunk=chunk)
+            print()
+                    
         except KeyboardInterrupt:
             continue
         except EOFError:

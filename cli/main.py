@@ -5,7 +5,7 @@ from rich.console import Console
 from .views.parser import ChunkParser
 
 def main():
-    agent = ChatAgent(OpenAIProvider())
+    agent = ChatAgent(provider=OpenAIProvider())
     controller = PromptSessionController()
     parser = ChunkParser()
     session = controller.session

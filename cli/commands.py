@@ -31,3 +31,9 @@ class CommandsHelper:
                 print(f"Error: {e}")
 
             return
+        
+    def clear():
+        pass
+    
+    def reset_workflow():
+        pass

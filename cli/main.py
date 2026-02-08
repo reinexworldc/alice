@@ -5,6 +5,8 @@ from rich.console import Console
 from .views.parser import ChunkParser
 from core.prompts.helper import PromptsHelper
 from cli.commands import CommandsHelper
+from core.memory import MemoryHelper
+from datetime import datetime, timezone
 
 def main():
     agent = ChatAgent(
@@ -21,28 +23,54 @@ def main():
 
     console.clear()
 
+    memory_file_created = False
+
     while True:
         try:
-            message = session.prompt(
-                "",
+            message: str = session.prompt(
+                "> ",
                 default="",
                 validate_while_typing=False,
             )
-
-            if commands_helper.is_command(message):
-                commands_helper.handle_command(agent=agent, text=message)
-                continue
-            
+                
             if not message.strip():
                 continue
                 
             if message.strip().lower() in ["exit", "quit", "q"]:
                 break
 
-            for chunk in agent.llm_output(message):
-                parser.parse(chunk=chunk)
-            print()
-                    
+            if commands_helper.is_command(message):
+                commands_helper.handle_command(agent=agent, text=message)
+                continue
+            
+            if not memory_file_created:
+                # Upgrade after >> Session id & Prompt Hash
+                name = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+                file = MemoryHelper.create_memory_file(name)
+                memory_file_created = True
+
+            if memory_file_created and message:
+                MemoryHelper.write_memory(
+                    file=file, 
+                    text=message, 
+                    role="User"
+                )
+
+                chunks = []
+                for chunk in agent.llm_output(message):
+                    parser.parse(chunk=chunk)
+                    chunks.append(chunk)
+                
+                llm_message = " ".join(chunks)
+
+                MemoryHelper.write_memory(
+                    file=file, 
+                    text=llm_message, 
+                    role="Assistant"
+                )
+
+            print("") 
+
         except KeyboardInterrupt:
             continue
         except EOFError:

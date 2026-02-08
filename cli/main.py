@@ -3,9 +3,21 @@ from core.agent import ChatAgent
 from providers.openai.provider import OpenAIProvider
 from rich.console import Console
 from .views.parser import ChunkParser
+from pathlib import Path
 
 def main():
-    agent = ChatAgent(provider=OpenAIProvider())
+    root = Path(__file__).resolve().parents[1]
+    prompts_path = root / "prompts"
+
+    system_prompt = (prompts_path / "system_prompt.md").read_text(
+        encoding="utf-8"
+    ) if prompts_path.exists() else ""
+
+    agent = ChatAgent(
+        provider=OpenAIProvider(), 
+        system_prompt=system_prompt,
+    )
+
     controller = PromptSessionController()
     parser = ChunkParser()
     session = controller.session

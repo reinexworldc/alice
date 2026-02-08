@@ -2,17 +2,22 @@ from providers.base import LLMProvider
 
 
 class ChatAgent:
-    def __init__(self, provider: LLMProvider):
+    def __init__(self, provider: LLMProvider, system_prompt: str | None = None):
         self.provider = provider
         self.messages = []
 
+        if system_prompt:
+            self.messages.append({
+                "role": "system",
+                "content": system_prompt,    
+            })
+
     # Calls provider.stream() or provider.generate() (implemented by concrete provider, e.g. OpenAIProvider)
     def llm_output(self, user_message: str):
-        # Memory/Prompt here
         self.messages.append({
-            "role": "user",
-            "content": user_message,     
-        })
+        "role": "user",
+        "content": user_message,     
+    })
 
         def stream():
             assistant_chunks = []

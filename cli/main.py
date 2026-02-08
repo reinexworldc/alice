@@ -3,28 +3,24 @@ from core.agent import ChatAgent
 from providers.openai.provider import OpenAIProvider
 from rich.console import Console
 from .views.parser import ChunkParser
-from pathlib import Path
+from core.prompts.helper import PromptsHelper
+from cli.commands import CommandsHelper
 
 def main():
-    root = Path(__file__).resolve().parents[1]
-    prompts_path = root / "prompts"
-
-    system_prompt = (prompts_path / "system_prompt.md").read_text(
-        encoding="utf-8"
-    ) if prompts_path.exists() else ""
-
     agent = ChatAgent(
         provider=OpenAIProvider(), 
-        system_prompt=system_prompt,
     )
-
     controller = PromptSessionController()
     parser = ChunkParser()
-    session = controller.session
+    commands_helper = CommandsHelper()
+    prompts_helper = PromptsHelper()
     console = Console()
+    session = controller.session
+
+    agent.add_system_prompt(prompts_helper.system_prompt())
 
     console.clear()
-    
+
     while True:
         try:
             message = session.prompt(
@@ -32,6 +28,10 @@ def main():
                 default="",
                 validate_while_typing=False,
             )
+
+            if commands_helper.is_command(message):
+                commands_helper.handle_command(agent=agent, text=message)
+                continue
             
             if not message.strip():
                 continue

@@ -1,0 +1,2 @@
+class PromptNotFoundError(Exception):
+    pass

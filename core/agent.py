@@ -1,4 +1,5 @@
 from providers.base import LLMProvider
+from pathlib import Path
 
 
 class ChatAgent:
@@ -38,3 +39,34 @@ class ChatAgent:
             })
 
         return stream()
+
+class AgentTools:
+    @staticmethod
+    def apply_path(self):
+        pass
+
+    @staticmethod
+    def get_directory(path: str | Path) -> dict:
+        path = Path(path).expanduser().resolve()
+
+        if not path.exists():
+            raise FileNotFoundError(f"Path does not exist: {path}")
+        
+        if not path.is_dir():
+            raise NotADirectoryError(f"Not a directory: {path}")
+        
+        directories = []
+        files = []
+
+        for item in path.iterdir():
+            if item.is_dir():
+                directories.append(item.name)
+            else:
+                files.append(item.name)
+
+        return {
+            "path": str(path),
+            "directories": sorted(directories),
+            "files": sorted(files)     
+        }
+        

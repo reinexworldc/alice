@@ -28,7 +28,7 @@ class OpenAIProvider(LLMProvider):
             self, 
             messages: list[dict], 
             tools: list[dict]
-        ) -> Iterator[str]:
+        ) -> Iterator[dict]:
         stream = self.client.chat.completions.create(
             model="gpt-5.2",
             messages=messages,
@@ -37,5 +37,8 @@ class OpenAIProvider(LLMProvider):
         )
         for chunk in stream:
             delta = chunk.choices[0].delta
-            if delta and delta.content:
-                yield delta.content
+
+            yield {
+                "content": delta.content,
+                "tool_calls": delta.tool_calls,    
+            }

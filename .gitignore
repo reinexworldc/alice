@@ -218,3 +218,6 @@ __marimo__/
 # Memory files
 *.jsonl
 .jsonl
+
+# Personal stuff
+TASKS.md

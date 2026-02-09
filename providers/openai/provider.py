@@ -9,15 +9,20 @@ class OpenAIProvider(LLMProvider):
 
     def llm_generate(
             self, 
-            message: str, 
-            tools: list[dict]
-        ) -> str:
+            messages: list[dict], 
+            tools: list[dict] | None = None,
+        ) -> dict:
         response = self.client.chat.completions.create(
             model="gpt-5.2",
-            messages=[{"role": "user", "content": message}],
+            messages=messages,
             tools=tools,
         )
-        return response.choices[0].message.content
+        msg = response.choices[0].message
+
+        return {
+            "content": msg.content,
+            "tool_calls": msg.tool_calls,     
+        }
 
     def llm_stream(
             self, 

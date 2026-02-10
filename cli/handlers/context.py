@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from cli.commands import CommandsHelper
+from helpers.commands import CommandsHelper
 from cli.prompt import PromptSessionController
 from cli.views.parser import ChunkParser
 from core.agent import ChatAgent

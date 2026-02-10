@@ -1,6 +1,5 @@
 from providers.base import LLMProvider
 from pathlib import Path
-from typing import TypedDict, List, Optional
 
 # Future: Separate logic. 
 class ChatAgent:

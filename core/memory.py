@@ -1,5 +1,5 @@
 from pathlib import Path
-from core.utils.normalize import normalize_filename
+from utils.normalize import normalize_filename
 from typing import Literal
 import json
 

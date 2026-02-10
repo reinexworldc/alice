@@ -1,16 +1,20 @@
 from providers.base import LLMProvider
 from pathlib import Path
+from typing import TypedDict, List, Optional
 
 
 class ChatAgent:
-    def __init__(self, provider: LLMProvider, system_prompt: str | None = None):
+    def __init__(
+        self, provider: LLMProvider, 
+        system_prompt: str | None = None
+        ):
         self.provider = provider
         self.messages = []
 
         if system_prompt:
             self.messages.append({
                 "role": "system",
-                "content": system_prompt,    
+                "content": system_prompt,
             })
             
     def add_system_prompt(self, text: str):
@@ -20,7 +24,7 @@ class ChatAgent:
         })        
 
     # Calls provider.stream() or provider.generate() (implemented by concrete provider, e.g. OpenAIProvider)
-    def llm_output(self, user_message: str):
+    def llm_output(self, user_message: str, tools: list[dict]):
         self.messages.append({
         "role": "user",
         "content": user_message,     
@@ -29,13 +33,15 @@ class ChatAgent:
         def stream():
             assistant_chunks = []
 
-            for chunk in self.provider.llm_stream(self.messages):
-                assistant_chunks.append(chunk)
+            for chunk in self.provider.llm_stream(messages=self.messages, tools=tools):
+                if chunk["content"]:
+                    assistant_chunks.append(chunk["content"])
                 yield chunk
 
             self.messages.append({
                 "role": "assistant",
-                "content": "".join(assistant_chunks)     
+                "content": "".join(assistant_chunks),
+                "tools": tools   
             })
 
         return stream()
@@ -69,4 +75,4 @@ class AgentTools:
             "directories": sorted(directories),
             "files": sorted(files)     
         }
-        
+    

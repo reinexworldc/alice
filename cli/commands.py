@@ -1,13 +1,14 @@
-from core.prompts.helper import PromptsHelper
+from helpers.prompt.helper import PromptsHelper
 from core.agent import ChatAgent
-from core.prompts.errors import PromptNotFoundError
+from helpers.prompt.errors import PromptNotFoundError
+
 
 class CommandsHelper:
     def __init__(self):
         self.prompts_helper = PromptsHelper()
 
     def is_command(self, text: str) -> bool:
-        return text.startswith("/") 
+        return text.startswith("/")
 
     def handle_command(self, agent: ChatAgent, text: str) -> None:
         parts: list = text[1:].strip().split()
@@ -22,18 +23,16 @@ class CommandsHelper:
             workflow = args[0]
 
             try:
-                agent.add_system_prompt(
-                    self.prompts_helper.workflow_prompt(workflow)
-                )
+                agent.add_system_prompt(self.prompts_helper.workflow_prompt(workflow))
                 print(f"Switched workflow to '{workflow}'")
 
             except PromptNotFoundError as e:
                 print(f"Error: {e}")
 
             return
-        
+
     def clear():
         pass
-    
+
     def reset_workflow():
         pass

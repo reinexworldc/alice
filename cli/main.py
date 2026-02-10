@@ -112,29 +112,27 @@ def main():
                     if chunk.get("tool_calls"):
                         tool_call: ToolCall
                         for tool_call in chunk["tool_calls"]:
-                            tool_id = tool_call.get("id")
+                            tool_id = getattr(tool_call, "id", None)
                             if tool_id:
+                                function_obj = getattr(tool_call, "function", None)
                                 # Initialize tool call structure on first encounter
                                 if tool_id not in tools_by_id:
+                                    function_name = getattr(function_obj, "name", "") if function_obj else ""
+
                                     tools_by_id[tool_id] = {
                                         "id": tool_id,
-                                        "type": tool_call.get("type"),  # Usually "function"
+                                        "type": getattr(tool_call, "type", "function"),  # Usually "function"
                                         "function": {
-                                            "name": tool_call.get("function", {}).get(
-                                                "name", ""
-                                            ),
+                                            "name": function_name,
                                             "arguments": "",  # Will accumulate JSON string
                                         },
                                     }
-
+                                
                                 # Append incremental argument fragment
-                                # Builds complete JSON string: "" -> "{\"path" -> "{\"path\": \"/home\"" -> "{\"path\": \"/home\"}"
-                                args_chunk = tool_call.get("function", {}).get(
-                                    "arguments", ""
-                                )
-                                tools_by_id[tool_id]["function"]["arguments"] += (
-                                    args_chunk
-                                )
+                                if function_obj:
+                                    args_chunk = getattr(function_obj, "arguments", "")
+                                    tools_by_id[tool_id]["function"]["arguments"] += args_chunk
+
 
                 # === TOOL EXECUTION ===
                 # After streaming completes, execute all accumulated tool calls

@@ -75,7 +75,7 @@ class ToolsHandler:
             ]     
         })
 
-        for tool_id, tool_call in tools_by_index.items():
+        for tool_call in tools_by_index.values():
             tool_name = tool_call["function"]["name"]
             args_string = tool_call["function"]["arguments"]
 

@@ -58,6 +58,23 @@ class ToolsHandler:
     def execute_tool_calls(
         agent: ChatAgent, tools_by_index: dict[int, dict[str, Any]]
     ) -> None:
+        # Mb separate it into uniq func.
+        agent.messages.append({
+            "role": "assistant",
+            "content": None,
+            "tool_calls": [
+                {
+                    "id": tool_call["id"],
+                    "type": tool_call["type"],
+                    "function": {
+                        "name": tool_call["function"]["name"],
+                        "arguments": tool_call["function"]["arguments"]
+                    }
+                }
+                for tool_call in tools_by_index.values()
+            ]     
+        })
+
         for tool_id, tool_call in tools_by_index.items():
             tool_name = tool_call["function"]["name"]
             args_string = tool_call["function"]["arguments"]
@@ -77,10 +94,11 @@ class ToolsHandler:
                     result = AgentTools.get_directory(**args)
                 except Exception as e:
                     result = {"error": str(e)}
+
                 agent.messages.append(
                     {
                         "role": "tool",
-                        "tool_name": tool_name,
+                        "tool_call_id": tool_call["id"],
                         "content": json.dumps(result),
                     }
                 )

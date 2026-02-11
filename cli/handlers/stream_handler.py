@@ -10,15 +10,17 @@ class StreamHandler:
         agent: ChatAgent,
         parser: ChunkParser,
         message: str,
-        tools: list[dict[str, Any]],
-    ) -> tuple[list[str], list[dict[str, Any]]]:
+        tools: list[dict],
+    ) -> tuple[list[str], list[dict]]:
         chunks: list[str] = []
-        raw_chunks: list[dict[str, Any]] = []
-
+        raw_chunks: list[dict] = []
+        
+        chunk: dict
         for chunk in agent.llm_output(message, tools=tools):
             raw_chunks.append(chunk)
             if chunk.get("content"):
-                parser.parse(chunk=chunk["content"])
-                chunks.append(chunk["content"])
+                content: str = chunk["content"]
+                parser.parse(content)
+                chunks.append(content)
 
         return chunks, raw_chunks

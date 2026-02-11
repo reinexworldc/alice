@@ -1,102 +1,95 @@
 from pydantic import BaseModel
-
+from typing import ClassVar
 
 class ChunkParser(BaseModel):
     """
     A parser that toggles colored output when detecting code block markers (```)
     and handles bold text markers (**), removing the markers from output.
-
-    This class processes streaming text chunks and prints them in blue when inside
-    a code block (between ``` markers) and in bold when between ** markers. The
-    markers themselves are removed from the output.
-
-    Attributes:
-        active (bool): Whether we're currently inside a code block. Defaults to False.
-        bold (bool): Whether we're currently in bold text. Defaults to False.
     """
-
     active: bool = False
     bold: bool = False
+    header: bool = False
+    # Future: inline_code: bool = False
     buffer: str = ""
-
-    def parse(self, chunk: str) -> str:
+    at_line_start: bool = True
+    
+    BLUE: ClassVar[str] = "\033[34m"
+    BOLD: ClassVar[str] = "\033[1m"
+    HEADER: ClassVar[str] = f"\033[1m\033[34m" 
+    # Future for inline code: CYAN: ClassVar[str] = "\033[36m"
+    RESET: ClassVar[str] = "\033[0m"
+    
+    def parse(self, chunk: str) -> None:
         """
-        Process a text chunk, remove markers, and print it with appropriate formatting.
-
-        This method:
-        1. Detects ``` and ** markers in the input
-        2. Toggles active/bold state when markers found and removes them from output
-        3. Prints chunk in blue if inside code block, bold if between **, or normal
-
+        Process a text chunk, remove markers, and print with appropriate formatting.
+        
         Args:
-            chunk (str): A piece of streaming text to process. Can be a single
-                        character, word, or larger text fragment.
-
+            chunk (str): A piece of streaming text to process.
+        
         Returns:
             str: The processed chunk with markers removed.
-
-        ANSI codes used:
-            - \033[34m : Blue text (code blocks)
-            - \033[1m  : Bold text
-            - \033[0m  : Reset formatting
-
-        Example:
-            >>> parser = ChunkParser()
-            >>> parser.parse("Hello ")          # Normal: "Hello "
-            >>> parser.parse("```")             # Marker removed, toggles code block
-            >>> parser.parse("code")            # Blue: "code"
-            >>> parser.parse("```")             # Marker removed, toggles off
-            >>> parser.parse("**")              # Marker removed, toggles bold
-            >>> parser.parse("bold")            # Bold: "bold"
-            >>> parser.parse("**")              # Marker removed, toggles bold off
         """
+        text = chunk
 
-        text = self.buffer + chunk
-        self.buffer = ""
+        output = self._process_markers(text)
 
+        self._print_formatted(output)
+
+    def _process_markers(self, text: str) -> str:
+        """Extract markers and toggle states, returning text without markers."""
         out = []
         i = 0
-        n = len(text)
-
-        while i < n:
-            if text.startswith("```", i):
+        
+        while i < len(text):
+            # Check for code block marker (```) - must check before single backtick
+            if text[i:i+3] == "```":
                 self.active = not self.active
                 i += 3
-                continue
+            # Future: Check for single backtick (`)
 
-            if text.startswith("**", i):
+            # Check for bold marker (**)
+            elif text[i:i+2] == "**":
                 self.bold = not self.bold
                 i += 2
-                continue
-
-            out.append(text[i])
-            i += 1
-
-        if out:
-            s = "".join(out)
-        else:
-            s = ""
-
-        tail = ""
-        j = len(s)
-        while j > 0 and s[j - 1] == "`" and len(tail) < 2:
-            tail = "`" + tail
-            j -= 1
-
-        if tail == "" and j > 0 and s[j - 1] == "*":
-            tail = "*"
-            j -= 1
-
-        if tail:
-            self.buffer = tail
-            s = s[:j]
-
-        if s:
-            if self.active:
-                print(f"\033[34m{s}\033[0m", end="", flush=True)
-            elif self.bold:
-                print(f"\033[1m{s}\033[0m", end="", flush=True)
+            elif text[i] == "#" and self.at_line_start:
+                # Count consecutive # symbols
+                header_level = 0
+                while i < len(text) and text[i] == "#" and header_level < 6:
+                    header_level += 1
+                    i += 1
+                # Skip any spaces after the # symbols
+                while i < len(text) and text[i] == " ":
+                    i += 1
+            # Skip leading whitespace at line start (before potential #)
+            elif text[i] == " " and self.at_line_start:
+                i += 1
+                
+                self.at_line_start = False
             else:
-                print(s, end="", flush=True)
+                char = text[i]
+                out.append(char)
+                
+                if char == "\n":
+                    self.header = False
+                    self.at_line_start = True
+                else:
+                    self.at_line_start = False
+                
+                i += 1
+        
+        return "".join(out)
+    
+    def _print_formatted(self, text: str) -> None:
+        """Print text with appropriate ANSI formatting based on current state."""
+        if self.header:
+            formatted = f"{self.HEADER}{text}{self.RESET}"
+        elif self.active:
+            formatted = f"{self.BLUE}{text}{self.RESET}"
+        elif self.inline_code:
+            formatted = f"{self.CYAN}{text}{self.RESET}"
+        elif self.bold:
+            formatted = f"{self.BOLD}{text}{self.RESET}"
+        else:
+            formatted = text
 
-        return s
+        print(formatted, end="", flush=True)

@@ -9,14 +9,14 @@ class ChunkParser(BaseModel):
     active: bool = False
     bold: bool = False
     header: bool = False
-    # Future: inline_code: bool = False
+    inline_code: bool = False
     buffer: str = ""
     at_line_start: bool = True
     
     BLUE: ClassVar[str] = "\033[34m"
     BOLD: ClassVar[str] = "\033[1m"
     HEADER: ClassVar[str] = f"\033[1m\033[34m" 
-    # Future for inline code: CYAN: ClassVar[str] = "\033[36m"
+    CYAN: ClassVar[str] = "\033[36m"
     RESET: ClassVar[str] = "\033[0m"
     
     def parse(self, chunk: str) -> None:
@@ -39,14 +39,21 @@ class ChunkParser(BaseModel):
         """Extract markers and toggle states, returning text without markers."""
         out = []
         i = 0
+
+        str = "```Hello!``` `How` *are u?*"
         
+        # Need Fix.
+        # Try to accumulate each spec. sybmol in a buffer.
+        # Turn off/Turn on in real time 
         while i < len(text):
             # Check for code block marker (```) - must check before single backtick
             if text[i:i+3] == "```":
                 self.active = not self.active
                 i += 3
             # Future: Check for single backtick (`)
-
+            elif text[i] == "`":
+                self.inline_code = not self.inline_code
+                i += 1
             # Check for bold marker (**)
             elif text[i:i+2] == "**":
                 self.bold = not self.bold

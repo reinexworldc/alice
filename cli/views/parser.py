@@ -19,7 +19,6 @@ class ChunkParser(BaseModel):
 
     BLUE: ClassVar[str] = "\033[34m"
     BOLD: ClassVar[str] = "\033[1m"
-    HEADER: ClassVar[str] = f"\033[1m\033[34m"
     ORANGE: ClassVar[str] = "\033[38;5;208m"
     RESET: ClassVar[str] = "\033[0m"
 
@@ -99,8 +98,6 @@ class ChunkParser(BaseModel):
                 elif count == 1 and not self.active:
                     self.inline_code = not self.inline_code
                     output.append(self.ORANGE if self.inline_code else self.RESET)
-                else:
-                    output.append("`" * count)
 
             if (
                 self.header_lvl
@@ -108,17 +105,19 @@ class ChunkParser(BaseModel):
                 and not self.active
                 and not self.inline_code
             ):
+                # Future: different output for header lvls.
                 lvl = self.header_lvl
                 self.header_lvl = 0
-                output.append("#" * lvl)
                 if self.header_space:
                     output.append(" ")
                 self.header_space = False
                 self.header = True
-                output.append(self.HEADER)
+                output.append(self.BOLD)
                 self.at_line_start = False
 
             output.append(char)
             self.at_line_start = False
 
         return "".join(output)
+
+# Future: **bold** processing 

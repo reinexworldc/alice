@@ -1,102 +1,124 @@
 from pydantic import BaseModel
 from typing import ClassVar
 
+
 class ChunkParser(BaseModel):
     """
     A parser that toggles colored output when detecting code block markers (```)
     and handles bold text markers (**), removing the markers from output.
     """
+
     active: bool = False
     bold: bool = False
     header: bool = False
+    header_lvl: int = 0
+    header_space: bool = False
     inline_code: bool = False
-    buffer: str = ""
+    pending_backticks: int = 0
     at_line_start: bool = True
-    
+
     BLUE: ClassVar[str] = "\033[34m"
     BOLD: ClassVar[str] = "\033[1m"
-    HEADER: ClassVar[str] = f"\033[1m\033[34m" 
-    CYAN: ClassVar[str] = "\033[36m"
+    HEADER: ClassVar[str] = f"\033[1m\033[34m"
+    ORANGE: ClassVar[str] = "\033[38;5;208m"
     RESET: ClassVar[str] = "\033[0m"
-    
+
     def parse(self, chunk: str) -> None:
         """
         Process a text chunk, remove markers, and print with appropriate formatting.
-        
+
         Args:
             chunk (str): A piece of streaming text to process.
-        
+
         Returns:
             str: The processed chunk with markers removed.
         """
         text = chunk
-
         output = self._process_markers(text)
-
-        self._print_formatted(output)
+        if output:
+            print(output, end="", flush=True)
 
     def _process_markers(self, text: str) -> str:
         """Extract markers and toggle states, returning text without markers."""
-        out = []
-        i = 0
+        output: list[str] = []
 
-        str = "```Hello!``` `How` *are u?*"
-        
-        # Need Fix.
-        # Try to accumulate each spec. sybmol in a buffer.
-        # Turn off/Turn on in real time 
-        while i < len(text):
-            # Check for code block marker (```) - must check before single backtick
-            if text[i:i+3] == "```":
-                self.active = not self.active
-                i += 3
-            # Future: Check for single backtick (`)
-            elif text[i] == "`":
-                self.inline_code = not self.inline_code
-                i += 1
-            # Check for bold marker (**)
-            elif text[i:i+2] == "**":
-                self.bold = not self.bold
-                i += 2
-            elif text[i] == "#" and self.at_line_start:
-                # Count consecutive # symbols
-                header_level = 0
-                while i < len(text) and text[i] == "#" and header_level < 6:
-                    header_level += 1
-                    i += 1
-                # Skip any spaces after the # symbols
-                while i < len(text) and text[i] == " ":
-                    i += 1
-            # Skip leading whitespace at line start (before potential #)
-            elif text[i] == " " and self.at_line_start:
-                i += 1
-                
-                self.at_line_start = False
-            else:
-                char = text[i]
-                out.append(char)
-                
-                if char == "\n":
-                    self.header = False
-                    self.at_line_start = True
-                else:
-                    self.at_line_start = False
-                
-                i += 1
-        
-        return "".join(out)
-    
-    def _print_formatted(self, text: str) -> None:
-        """Print text with appropriate ANSI formatting based on current state."""
-        if self.header:
-            formatted = f"{self.HEADER}{text}{self.RESET}"
-        elif self.active:
-            formatted = f"{self.BLUE}{text}{self.RESET}"
+        if self.active:
+            output.append(self.BLUE)
         elif self.inline_code:
-            formatted = f"{self.CYAN}{text}{self.RESET}"
-        elif self.bold:
-            formatted = f"{self.BOLD}{text}{self.RESET}"
-        else:
-            formatted = text
+            output.append(self.ORANGE)
 
-        print(formatted, end="", flush=True)
+        for char in text:
+            if char == "\n":
+                if self.header_lvl:
+                    output.append("#" * self.header_lvl)
+                    if self.header_space:
+                        output.append(" ")
+                    self.header_lvl = 0
+                    self.header_space = False
+                if self.header:
+                    output.append(self.RESET)
+                    self.header = False
+                self.at_line_start = True
+                output.append(char)
+                continue
+
+            if char == "`":
+                self.pending_backticks += 1
+                continue
+
+            if (
+                self.at_line_start
+                and not self.active
+                and not self.inline_code
+                and char == "#"
+            ):
+                self.header_lvl += 1
+                continue
+
+            if (
+                self.at_line_start
+                and self.header_lvl
+                and not self.active
+                and not self.inline_code
+                and char == " "
+            ):
+                self.header_space = True
+                continue
+
+            if self.pending_backticks:
+                count = self.pending_backticks
+                self.pending_backticks = 0
+
+                if count == 3:
+                    self.active = not self.active
+                    if self.active:
+                        output.append(self.BLUE)
+                        self.inline_code = False
+                    else:
+                        output.append(self.RESET)
+                elif count == 1 and not self.active:
+                    self.inline_code = not self.inline_code
+                    output.append(self.ORANGE if self.inline_code else self.RESET)
+                else:
+                    output.append("`" * count)
+
+            if (
+                self.header_lvl
+                and self.at_line_start
+                and not self.active
+                and not self.inline_code
+            ):
+                lvl = self.header_lvl
+                self.header_lvl = 0
+                output.append("#" * lvl)
+                if self.header_space:
+                    output.append(" ")
+                self.header_space = False
+                self.header = True
+                output.append(self.HEADER)
+                self.at_line_start = False
+
+            output.append(char)
+            self.at_line_start = False
+
+        return "".join(output)

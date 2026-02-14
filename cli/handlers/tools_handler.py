@@ -8,6 +8,17 @@ from schemas import ToolCall
 
 class ToolsHandler:
     @staticmethod
+    def _append_tool_message(agent: ChatAgent, tool_call_id: str, result: Any) -> None:
+        content = json.dumps(result) if isinstance(result, dict) else str(result)
+        agent.messages.append(
+            {
+                "role": "tool",
+                "tool_call_id": tool_call_id,
+                "content": content,
+            }
+        )
+
+    @staticmethod
     def load_tools() -> list[dict[str, Any]]:
         tools_path = Path(__file__).resolve().parents[2] / "core" / "tools_content.json"
         with open(tools_path) as f:
@@ -56,24 +67,34 @@ class ToolsHandler:
 
     @staticmethod
     def execute_tool_calls(
-        agent: ChatAgent, tools_by_index: dict[int, dict[str, Any]]
+        # Future: Return "welcome" message if tool call it's first call.
+        agent: ChatAgent,
+        tools_by_index: dict[int, dict[str, Any]],
     ) -> None:
         # Mb separate it into uniq func.
-        agent.messages.append({
-            "role": "assistant",
-            "content": None,
-            "tool_calls": [
-                {
-                    "id": tool_call["id"],
-                    "type": tool_call["type"],
-                    "function": {
-                        "name": tool_call["function"]["name"],
-                        "arguments": tool_call["function"]["arguments"]
+        agent.messages.append(
+            {
+                "role": "assistant",
+                "content": "",
+                "tool_calls": [
+                    {
+                        "id": tool_call["id"],
+                        "type": tool_call["type"],
+                        "function": {
+                            "name": tool_call["function"]["name"],
+                            "arguments": tool_call["function"]["arguments"],
+                        },
                     }
-                }
-                for tool_call in tools_by_index.values()
-            ]     
-        })
+                    for tool_call in tools_by_index.values()
+                ],
+            }
+        )
+
+        tool_handlers = {
+            "get_directory": AgentTools.get_directory,
+            "get_lines": AgentTools.get_lines,
+            "review_code": AgentTools.review_code,
+        }
 
         for tool_call in tools_by_index.values():
             tool_name = tool_call["function"]["name"]
@@ -89,32 +110,18 @@ class ToolsHandler:
                 print(f"Error: {e}")
                 continue
 
-            if tool_name == "get_directory":
-                try:
-                    result = AgentTools.get_directory(**args)
-                except Exception as e:
-                    result = {"error": str(e)}
-
-                agent.messages.append(
-                    {
-                        "role": "tool",
-                        "tool_call_id": tool_call["id"],
-                        "content": json.dumps(result),
-                    }
+            handler = tool_handlers.get(tool_name)
+            if handler is None:
+                ToolsHandler._append_tool_message(
+                    agent,
+                    tool_call["id"],
+                    {"error": f"Unknown tool: {tool_name}"},
                 )
+                continue
 
-            if tool_name == "get_lines":
-                try:
-                    result = AgentTools.get_lines(**args)
-                except Exception as e:
-                    result = {"error": str(e)}
+            try:
+                result = handler(**args)
+            except Exception as e:
+                result = {"error": str(e)}
 
-                agent.messages.append(
-                    {
-                        "role": "tool",
-                        "tool_call_id": tool_call["id"],
-                        "content": json.dumps(result) 
-                        if isinstance(result, dict) 
-                        else str(result),
-                    }
-                )
+            ToolsHandler._append_tool_message(agent, tool_call["id"], result)

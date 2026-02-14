@@ -1,6 +1,6 @@
 from providers.base import LLMProvider
 from pathlib import Path
-import sys
+from itertools import islice
 
 # Future: Separate logic. 
 class ChatAgent:
@@ -112,11 +112,18 @@ class AgentTools:
         return line_count
     
     @staticmethod
-    def review_code(self, path: Path,):
-        pass
+    def review_code(path: Path, start: int, end: int) -> str:
+        path = Path(path).expanduser().resolve()
+        if not path.is_file():
+            raise IsADirectoryError(f"Path is not a file: {path}") 
+        
+        with open(path, "r", encoding="utf-8") as f:
+            lines = list(islice(f, start - 1, end))
+
+        return lines 
 
     @staticmethod
-    def apply_patch(self):
+    def apply_patch():
         pass
     
     @staticmethod

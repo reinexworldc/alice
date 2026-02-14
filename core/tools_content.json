@@ -32,5 +32,30 @@
         "required": ["path"]
       }
     }
+  },
+  {
+  "type": "function",
+  "function": {
+    "name": "review_code",
+    "description": "Get specific lines from a file by line number range",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to a file (relative or absolute)"
+        },
+        "start": {
+          "type": "integer",
+          "description": "Starting line number (inclusive, 1-indexed)"
+        },
+        "end": {
+          "type": "integer",
+          "description": "Ending line number (inclusive, 1-indexed)"
+        }
+      },
+      "required": ["path", "start", "end"]
+    }
   }
+}
 ]

@@ -102,3 +102,19 @@ class ToolsHandler:
                         "content": json.dumps(result),
                     }
                 )
+
+            if tool_name == "get_lines":
+                try:
+                    result = AgentTools.get_lines(**args)
+                except Exception as e:
+                    result = {"error": str(e)}
+
+                agent.messages.append(
+                    {
+                        "role": "tool",
+                        "tool_call_id": tool_call["id"],
+                        "content": json.dumps(result) 
+                        if isinstance(result, dict) 
+                        else str(result),
+                    }
+                )

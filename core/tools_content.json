@@ -15,5 +15,22 @@
         "required": ["path"]
       }
     }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "get_lines",
+      "description": "Get the number of lines in a file",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to a file (relative or absolute)"
+          }
+        },
+        "required": ["path"]
+      }
+    }
   }
 ]

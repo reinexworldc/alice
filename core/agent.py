@@ -1,5 +1,6 @@
 from providers.base import LLMProvider
 from pathlib import Path
+import sys
 
 # Future: Separate logic. 
 class ChatAgent:
@@ -99,14 +100,19 @@ class AgentTools:
     This class contains methods that can be exposed as tools to LLMs, allowing them
     to interact with the file system and perform other operations.
     """
+
+    @staticmethod
+    def get_lines(self, path: Path):
+        with open(path, "rb") as f:
+            line_count: int = sum(1 for _ in f)
+        return line_count
     
     @staticmethod
-    def apply_path(self):
-        """
-        Placeholder method for path operations.
-        
-        TODO: Implement functionality
-        """
+    def review_code(self, path: Path,):
+        pass
+
+    @staticmethod
+    def apply_patch(self):
         pass
     
     @staticmethod
@@ -163,3 +169,4 @@ class AgentTools:
             "directories": sorted(directories),
             "files": sorted(files)     
         }
+    

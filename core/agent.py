@@ -102,7 +102,11 @@ class AgentTools:
     """
 
     @staticmethod
-    def get_lines(self, path: Path):
+    def get_lines(path: str | Path) -> int:
+        path = Path(path).expanduser().resolve()
+        if not path.is_file():
+            raise IsADirectoryError(f"Path is not a file: {path}")
+
         with open(path, "rb") as f:
             line_count: int = sum(1 for _ in f)
         return line_count

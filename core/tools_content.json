@@ -34,28 +34,63 @@
     }
   },
   {
-  "type": "function",
-  "function": {
-    "name": "review_code",
-    "description": "Get specific lines from a file by line number range",
-    "parameters": {
-      "type": "object",
-      "properties": {
-        "path": {
-          "type": "string",
-          "description": "Path to a file (relative or absolute)"
+    "type": "function",
+    "function": {
+      "name": "review_code",
+      "description": "Get specific lines from a file by line number range",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to a file (relative or absolute)"
+          },
+          "start": {
+            "type": "integer",
+            "description": "Starting line number (inclusive, 1-indexed)"
+          },
+          "end": {
+            "type": "integer",
+            "description": "Ending line number (inclusive, 1-indexed)"
+          }
         },
-        "start": {
-          "type": "integer",
-          "description": "Starting line number (inclusive, 1-indexed)"
+        "required": ["path", "start", "end"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "apply_patch",
+      "description": "Modify specific lines in a file by line number. Replaces specified lines with provided content and writes the file back.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to a file (relative or absolute)"
+          },
+          "new_lines": {
+            "type": "array",
+            "description": "List of line edits. Each item targets a 1-indexed line number and provides the full replacement content. Include a trailing \\n if you want to preserve the original line break.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "line": {
+                  "type": "integer",
+                  "description": "Line number to replace (1-indexed)."
+                },
+                "content": {
+                  "type": "string",
+                  "description": "Full replacement content for the line. Example: \"new line 5\\n\""
+                }
+              },
+              "required": ["line", "content"]
+            }
+          }
         },
-        "end": {
-          "type": "integer",
-          "description": "Ending line number (inclusive, 1-indexed)"
-        }
-      },
-      "required": ["path", "start", "end"]
+        "required": ["path", "new_lines"]
+      }
     }
   }
-}
 ]

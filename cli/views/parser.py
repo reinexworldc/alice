@@ -8,14 +8,15 @@ class ChunkParser(BaseModel):
     and handles bold text markers (**), removing the markers from output.
     """
 
+    at_line_start: bool = True
     active: bool = False
     bold: bool = False
     header: bool = False
-    header_lvl: int = 0
     header_space: bool = False
     inline_code: bool = False
     pending_backticks: int = 0
-    at_line_start: bool = True
+    pending_asterisk: int = 0
+    header_lvl: int = 0
 
     BLUE: ClassVar[str] = "\033[34m"
     BOLD: ClassVar[str] = "\033[1m"
@@ -84,6 +85,25 @@ class ChunkParser(BaseModel):
                 self.header_space = True
                 continue
 
+            if char == "*":
+                self.pending_asterisk += 1
+                continue
+
+            if self.pending_asterisk:
+                count = self.pending_asterisk
+                self.pending_asterisk = 0
+
+                if count == 2:
+                    self.bold = not self.bold
+                    if self.bold:
+                        output.append(self.BOLD)
+                    if self.active:
+                        output.append(self.BLUE)
+                    if self.inline_code:
+                        output.append(self.ORANGE)
+                    else:
+                        output.append(self.RESET)
+
             if self.pending_backticks:
                 count = self.pending_backticks
                 self.pending_backticks = 0
@@ -108,8 +128,6 @@ class ChunkParser(BaseModel):
                 # Future: different output for header lvls.
                 lvl = self.header_lvl
                 self.header_lvl = 0
-                if self.header_space:
-                    output.append(" ")
                 self.header_space = False
                 self.header = True
                 output.append(self.BOLD)

@@ -63,6 +63,22 @@ class ToolsHandler:
                         )
 
         return tools_by_index
+        
+    @staticmethod
+    def narrate(args_string: str, tool_name: str ):
+        name = Path(json.loads(args_string).get("path", "")).name
+        if tool_name == "get_directory":
+            print(f"Looking at dir >> {name}")
+
+        if tool_name == "get_lines":
+            print(f"Checking lines count in >> {name}")
+
+        if tool_name == "review_code":
+            print(f"Looking at file >> {name}")
+
+        # TODO: Diff log.
+        if tool_name == "apply_patch":
+            print(f"Apply patch to file >> {name}")
 
     def _append_tool_message(self, tool_call_id: str, result: Any) -> None:
         content = json.dumps(result) if isinstance(result, dict) else str(result)
@@ -102,7 +118,7 @@ class ToolsHandler:
             tool_name = tool_call["function"]["name"]
             args_string = tool_call["function"]["arguments"]
 
-            print(tool_name)
+            ToolsHandler.narrate(args_string=args_string, tool_name=tool_name)
 
             if not args_string or not args_string.strip():
                 continue

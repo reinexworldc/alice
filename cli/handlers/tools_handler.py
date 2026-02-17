@@ -7,17 +7,16 @@ from schemas import ToolCall
 
 
 class ToolsHandler:
-    @staticmethod
-    def _append_tool_message(agent: ChatAgent, tool_call_id: str, result: Any) -> None:
-        content = json.dumps(result) if isinstance(result, dict) else str(result)
-        agent.messages.append(
-            {
-                "role": "tool",
-                "tool_call_id": tool_call_id,
-                "content": content,
-            }
-        )
+    def __init__(self, agent: ChatAgent):
+        self.agent = agent
+        self.tool_handlers = {
+            "get_directory": AgentTools.get_directory,
+            "get_lines": AgentTools.get_lines,
+            "review_code": AgentTools.review_code,
+            "apply_patch": AgentTools.apply_patch,
+        }
 
+    # TODO: Separate static methods to utils ? 
     @staticmethod
     def load_tools() -> list[dict[str, Any]]:
         tools_path = Path(__file__).resolve().parents[2] / "core" / "tools_content.json"
@@ -65,14 +64,23 @@ class ToolsHandler:
 
         return tools_by_index
 
-    @staticmethod
+    def _append_tool_message(self, tool_call_id: str, result: Any) -> None:
+        content = json.dumps(result) if isinstance(result, dict) else str(result)
+        self.agent.messages.append(
+            {
+                "role": "tool",
+                "tool_call_id": tool_call_id,
+                "content": content,
+            }
+        )
+
+    # Future: Return "welcome" message if tool call it's first call.
     def execute_tool_calls(
-        # Future: Return "welcome" message if tool call it's first call.
-        agent: ChatAgent,
+        self,
         tools_by_index: dict[int, dict[str, Any]],
     ) -> None:
         # Mb separate it into uniq func.
-        agent.messages.append(
+        self.agent.messages.append(
             {
                 "role": "assistant",
                 "content": "",
@@ -90,13 +98,6 @@ class ToolsHandler:
             }
         )
 
-        tool_handlers = {
-            "get_directory": AgentTools.get_directory,
-            "get_lines": AgentTools.get_lines,
-            "review_code": AgentTools.review_code,
-            "apply_patch": AgentTools.apply_patch,
-        }
-
         for tool_call in tools_by_index.values():
             tool_name = tool_call["function"]["name"]
             args_string = tool_call["function"]["arguments"]
@@ -111,10 +112,9 @@ class ToolsHandler:
                 print(f"Error: {e}")
                 continue
 
-            handler = tool_handlers.get(tool_name)
+            handler = self.tool_handlers.get(tool_name)
             if handler is None:
-                ToolsHandler._append_tool_message(
-                    agent,
+                self._append_tool_message(
                     tool_call["id"],
                     {"error": f"Unknown tool: {tool_name}"},
                 )
@@ -125,4 +125,4 @@ class ToolsHandler:
             except Exception as e:
                 result = {"error": str(e)}
 
-            ToolsHandler._append_tool_message(agent, tool_call["id"], result)
+            self._append_tool_message(tool_call["id"], result)

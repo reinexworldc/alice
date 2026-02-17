@@ -5,7 +5,6 @@ import json
 
 Role = Literal["Assistant", "User"]
 
-
 class MemoryHelper:
     @staticmethod
     def create_memory_file(raw_name: str) -> Path:

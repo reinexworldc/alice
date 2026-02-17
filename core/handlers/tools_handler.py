@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Any
 
 from core.agent import AgentTools, ChatAgent
-from schemas import ToolCall
+from core.schemas import ToolCall
 
 
 class ToolsHandler:
@@ -16,7 +16,7 @@ class ToolsHandler:
             "apply_patch": AgentTools.apply_patch,
         }
 
-    # TODO: Separate static methods to utils ? 
+    # TODO: Separate static methods to utils ?
     @staticmethod
     def load_tools() -> list[dict[str, Any]]:
         tools_path = Path(__file__).resolve().parents[2] / "core" / "tools_content.json"
@@ -101,6 +101,8 @@ class ToolsHandler:
         for tool_call in tools_by_index.values():
             tool_name = tool_call["function"]["name"]
             args_string = tool_call["function"]["arguments"]
+
+            print(tool_name)
 
             if not args_string or not args_string.strip():
                 continue

@@ -1,15 +1,15 @@
 from .handlers.command_handler import CommandHandler
 from .handlers.context import SessionContext
 from .handlers.input_handler import InputHandler
-from .handlers.memory_handler import MemoryHandler
-from .handlers.stream_handler import StreamHandler
-from .handlers.tools_handler import ToolsHandler
+from core.handlers.memory_handler import MemoryHandler
+from core.handlers.stream_handler import StreamHandler
+from core.handlers.tools_handler import ToolsHandler
 from .prompt import PromptSessionController
 from .views.parser import ChunkParser
-from helpers.commands import CommandsHelper
+from core.helpers.commands import CommandsHelper
 from core.agent import ChatAgent
-from helpers.prompt.helper import PromptsHelper
-from providers.openai.provider import OpenAIProvider
+from core.helpers.prompt.helper import PromptsHelper
+from core.providers.openai.provider import OpenAIProvider
 from rich.console import Console
 
 
@@ -28,6 +28,7 @@ def main():
         prompts_helper=prompts_helper,
         console=console,
     )
+    tools_handler = ToolsHandler(agent=agent)
     session = context.controller.session
 
     context.agent.add_system_prompt(context.prompts_helper.system_prompt())
@@ -51,23 +52,23 @@ def main():
                 MemoryHandler.write_user_message(context, message)
 
                 followup_message = message
-                # Future: separate tool call logic. 
+                # Future: separate tool call logic.
                 while True:
-                    tools = ToolsHandler.load_tools()
+                    tools = tools_handler.load_tools()
                     chunks, raw_chunks = StreamHandler.stream_and_parse(
                         agent=context.agent,
                         parser=context.parser,
                         message=followup_message,
                         tools=tools,
                     )
-                    context.tools_by_index = ToolsHandler.collect_tool_calls(raw_chunks)
+                    context.tools_by_index = tools_handler.collect_tool_calls(
+                        raw_chunks
+                    )
 
                     if not context.tools_by_index:
                         break
 
-                    ToolsHandler.execute_tool_calls(
-                        context.agent, context.tools_by_index
-                    )
+                    tools_handler.execute_tool_calls(context.tools_by_index)
 
                     followup_message = "continue"
 

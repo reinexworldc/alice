@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from cli.handlers.context import SessionContext
-from helpers.memory import MemoryHelper
+from core.helpers.memory import MemoryHelper
 
 
 class MemoryHandler:

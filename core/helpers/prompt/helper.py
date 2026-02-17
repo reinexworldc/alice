@@ -4,7 +4,7 @@ from .errors import PromptNotFoundError
 
 class PromptsHelper:
     def __init__(self):
-        self.PROMPTS_DIR = Path(__file__).resolve().parents[2] / "prompts"
+        self.PROMPTS_DIR = Path(__file__).resolve().parents[3] / "prompts"
 
     def load_prompt(self, path: Path) -> str:
         return path.read_text(encoding="utf-8")

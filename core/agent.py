@@ -1,4 +1,4 @@
-from providers.base import LLMProvider
+from core.providers.base import LLMProvider
 from pathlib import Path
 from itertools import islice
 
@@ -145,7 +145,7 @@ class AgentTools:
             int(line_num): "" if new_content is None else str(new_content)
             for line_num, new_content in new_lines.items()
         }
-    
+
     # TODO: Works only for replace, not for add.
     @staticmethod
     def apply_patch(new_lines: dict | list[dict], path: str | Path):

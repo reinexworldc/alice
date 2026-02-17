@@ -1,6 +1,6 @@
-from helpers.prompt.helper import PromptsHelper
+from core.helpers.prompt.helper import PromptsHelper
 from core.agent import ChatAgent
-from helpers.prompt.errors import PromptNotFoundError
+from core.helpers.prompt.errors import PromptNotFoundError
 
 
 class CommandsHelper:
@@ -35,4 +35,7 @@ class CommandsHelper:
         pass
 
     def reset_workflow():
+        pass
+
+    def change_system_prompt():
         pass

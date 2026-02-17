@@ -1,5 +1,5 @@
 from openai import OpenAI
-from providers.base import LLMProvider
+from core.providers.base import LLMProvider
 from typing import Iterator
 
 
@@ -8,10 +8,10 @@ class OpenAIProvider(LLMProvider):
         self.client = client or OpenAI()
 
     def llm_generate(
-            self, 
-            messages: list[dict], 
-            tools: list[dict] | None = None,
-        ) -> dict:
+        self,
+        messages: list[dict],
+        tools: list[dict] | None = None,
+    ) -> dict:
         response = self.client.chat.completions.create(
             model="gpt-5.2",
             messages=messages,
@@ -21,14 +21,10 @@ class OpenAIProvider(LLMProvider):
 
         return {
             "content": msg.content,
-            "tool_calls": msg.tool_calls,     
+            "tool_calls": msg.tool_calls,
         }
 
-    def llm_stream(
-            self, 
-            messages: list[dict], 
-            tools: list[dict]
-        ) -> Iterator[dict]:
+    def llm_stream(self, messages: list[dict], tools: list[dict]) -> Iterator[dict]:
         stream = self.client.chat.completions.create(
             model="gpt-5.2",
             messages=messages,
@@ -40,5 +36,5 @@ class OpenAIProvider(LLMProvider):
 
             yield {
                 "content": delta.content,
-                "tool_calls": delta.tool_calls,    
+                "tool_calls": delta.tool_calls,
             }

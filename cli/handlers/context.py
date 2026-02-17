@@ -2,11 +2,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from helpers.commands import CommandsHelper
+from core.helpers.commands import CommandsHelper
 from cli.prompt import PromptSessionController
 from cli.views.parser import ChunkParser
 from core.agent import ChatAgent
-from helpers.prompt.helper import PromptsHelper
+from core.helpers.prompt.helper import PromptsHelper
 from rich.console import Console
 
 

@@ -4,6 +4,7 @@ from typing import Any
 
 from core.agent import AgentTools, ChatAgent
 from core.schemas import ToolCall
+from .memory_handler import MemoryHandler 
 
 
 class ToolsHandler:
@@ -15,6 +16,7 @@ class ToolsHandler:
             "review_code": AgentTools.review_code,
             "apply_patch": AgentTools.apply_patch,
         }
+        self.memory_handler = MemoryHandler()
 
     # TODO: Separate static methods to utils ?
     @staticmethod
@@ -119,6 +121,7 @@ class ToolsHandler:
             args_string = tool_call["function"]["arguments"]
 
             ToolsHandler.narrate(args_string=args_string, tool_name=tool_name)
+            self.memory_handler.write_assistant_message()
 
             if not args_string or not args_string.strip():
                 continue

@@ -11,6 +11,8 @@ Role = Literal["Assistant", "User"]
 class MemoryHandler:
     def __init__(self):
         self.memory_dir = Path(__file__).resolve().parents[2] / "memory"
+        self.memory_file: Path | None = None
+        self.memory_file_created: bool = False
     
     def create_memory_file(self, raw_name: str) -> Path:
         safe_name = normalize.normalize_filename(raw_name)
@@ -23,13 +25,13 @@ class MemoryHandler:
         except OSError as exc:
             raise RuntimeError(f"Failed to create memory file at {file_path}") from exc
         
-    def ensure_memory_file(self, context: SessionContext) -> None:
-        if context.memory_file_created:
+    def ensure_memory_file(self,) -> None:
+        if self.memory_file_created:
             return
 
         name = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-        context.memory_file = self.create_memory_file(name)
-        context.memory_file_created = True
+        self.memory_file = self.create_memory_file(name)
+        self.memory_file_created = True
 
     def write_memory(self, file: Path, text: str, role: Role) -> None:
         try:
@@ -43,19 +45,19 @@ class MemoryHandler:
             raise RuntimeError(f"Failed to write memory file at {file}") from exc
         
     # TODO: Dry 
-    def write_user_message(self, context: SessionContext, message: str) -> None:
-        if context.memory_file is None:
+    def write_user_message(self, message: str) -> None:
+        if self.memory_file is None:
             return
 
         self.write_memory(
-            file=context.memory_file, text=message, role="User"
+            file=self.memory_file, text=message, role="User"
         )
 
     # TODO: Dry 
-    def write_assistant_message(self, context: SessionContext, message: str) -> None:
-        if context.memory_file is None:
+    def write_assistant_message(self, context, message: str) -> None:
+        if self.memory_file is None:
             return
 
         self.write_memory(
-            file=context.memory_file, text=message, role="Assistant"
+            file=self.memory_file, text=message, role="Assistant"
         )

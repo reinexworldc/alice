@@ -29,6 +29,7 @@ def main():
         console=console,
     )
     tools_handler = ToolsHandler(agent=agent)
+    memory = MemoryHandler()
     session = context.controller.session
 
     context.agent.add_system_prompt(context.prompts_helper.system_prompt())
@@ -47,9 +48,9 @@ def main():
             if CommandHandler.handle_command_if_any(context, message):
                 continue
 
-            MemoryHandler.ensure_memory_file(context)
+            memory.ensure_memory_file(context)
             if message:
-                MemoryHandler.write_user_message(context, message)
+                memory.write_user_message(context, message)
 
                 followup_message = message
                 # Future: separate tool call logic.
@@ -73,7 +74,7 @@ def main():
                     followup_message = "continue"
 
                 llm_message = "".join(chunks)
-                MemoryHandler.write_assistant_message(context, llm_message)
+                memory.write_assistant_message(context, llm_message)
             print("")
         except KeyboardInterrupt:
             continue

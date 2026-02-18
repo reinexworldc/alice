@@ -54,7 +54,7 @@ class MemoryHandler:
         )
 
     # TODO: Dry 
-    def write_assistant_message(self, context, message: str) -> None:
+    def write_assistant_message(self, message: str) -> None:
         if self.memory_file is None:
             return
 

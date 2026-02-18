@@ -46,9 +46,9 @@ def main():
             if commands_handler.handle_command_if_any(context, message):
                 continue
 
-            memory.ensure_memory_file(context)
+            memory.ensure_memory_file()
             if message:
-                memory.write_user_message(context, message)
+                memory.write_user_message(message)
 
                 followup_message = message
                 # Future: separate tool call logic.
@@ -72,7 +72,7 @@ def main():
                     followup_message = "continue"
 
                 llm_message = "".join(chunks)
-                memory.write_assistant_message(context, llm_message)
+                memory.write_assistant_message(llm_message)
             print("")
         except KeyboardInterrupt:
             continue

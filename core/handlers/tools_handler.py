@@ -121,7 +121,6 @@ class ToolsHandler:
             args_string = tool_call["function"]["arguments"]
 
             ToolsHandler.narrate(args_string=args_string, tool_name=tool_name)
-            self.memory_handler.write_assistant_message()
 
             if not args_string or not args_string.strip():
                 continue

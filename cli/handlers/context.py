@@ -16,6 +16,4 @@ class SessionContext:
     parser: ChunkParser
     prompts_helper: PromptsHelper
     console: Console
-    memory_file_created: bool = False
-    memory_file: Path | None = None
     tools_by_index: dict[int, Any] | None = None

@@ -6,7 +6,6 @@ from core.handlers.stream_handler import StreamHandler
 from core.handlers.tools_handler import ToolsHandler
 from .prompt import PromptSessionController
 from .views.parser import ChunkParser
-from core.helpers.commands import CommandsHelper
 from core.agent import ChatAgent
 from core.helpers.prompt.helper import PromptsHelper
 from core.providers.openai.provider import OpenAIProvider
@@ -17,19 +16,18 @@ def main():
     agent = ChatAgent(provider=OpenAIProvider())
     controller = PromptSessionController()
     parser = ChunkParser()
-    commands_helper = CommandsHelper()
     prompts_helper = PromptsHelper()
     console = Console()
     context = SessionContext(
         agent=agent,
         controller=controller,
         parser=parser,
-        commands_helper=commands_helper,
         prompts_helper=prompts_helper,
         console=console,
     )
     tools_handler = ToolsHandler(agent=agent)
     memory = MemoryHandler()
+    commands_handler = CommandHandler()
     session = context.controller.session
 
     context.agent.add_system_prompt(context.prompts_helper.system_prompt())
@@ -45,7 +43,7 @@ def main():
             if InputHandler.is_exit_command(message):
                 break
 
-            if CommandHandler.handle_command_if_any(context, message):
+            if commands_handler.handle_command_if_any(context, message):
                 continue
 
             memory.ensure_memory_file(context)

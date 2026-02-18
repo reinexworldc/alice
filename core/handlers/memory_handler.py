@@ -18,7 +18,6 @@ class MemoryHandler:
 
         try:
             self.memory_dir.mkdir(parents=True, exist_ok=True)
-            print(self.memory_dir)
             file_path.touch(exist_ok=True)
             return file_path
         except OSError as exc:

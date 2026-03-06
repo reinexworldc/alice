@@ -9,11 +9,39 @@ from .views.parser import ChunkParser
 from core.agent import ChatAgent
 from core.helpers.prompt.helper import PromptsHelper
 from core.providers.openai.provider import OpenAIProvider
+from core.providers.transformers import TransformersProvider
 from rich.console import Console
+from utils.config_utils import Config
 
 
 def main():
-    agent = ChatAgent(provider=OpenAIProvider())
+    config = Config()
+
+    if not config.exists():
+        print("Choose agent provider (openai / transformers):")
+        agent_provider = input().lower()
+
+        if agent_provider == "openai":
+            config.write({"provider": "openai"})
+            agent = ChatAgent(provider=OpenAIProvider())
+
+        elif agent_provider == "transformers":
+            print("Choose model (llama):")
+            model_name = input().lower()
+
+            if model_name == "llama":
+                config.write({"provider": "transformers", "model": "meta-llama/Llama-3.1-8B"})
+                agent = ChatAgent(provider=TransformersProvider("meta-llama/Llama-3.1-8B"))
+
+    else:
+        data = config.read()
+
+        if data["provider"] == "openai":
+            agent = ChatAgent(provider=OpenAIProvider())
+        
+        elif data["provider"] == "transfomers":
+            agent = ChatAgent(provider=TransformersProvider(data["model"]))
+
     controller = PromptSessionController()
     parser = ChunkParser()
     prompts_helper = PromptsHelper()
@@ -25,8 +53,8 @@ def main():
         prompts_helper=prompts_helper,
         console=console,
     )
-    tools_handler = ToolsHandler(agent=agent)
     memory = MemoryHandler()
+    tools_handler = ToolsHandler(agent=agent, memory_handler=memory)
     commands_handler = CommandHandler()
     session = context.controller.session
 

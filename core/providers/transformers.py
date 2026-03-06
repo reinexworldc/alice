@@ -3,7 +3,7 @@ from threading import Thread
 from typing import Iterator
 
 
-class Transofmers:
+class TransformersProvider:
     def __init__(self, model_name: str, device: str = "cpu"):
         self.model_name = model_name
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -71,7 +71,7 @@ class Transofmers:
 
         for token in streamer:
             yield {
-                "content": token,
+                "content": token if token else None,
                 "tool_calls": None,  # Tool calls aren't available mid-stream
             }
 

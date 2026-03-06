@@ -11,14 +11,14 @@ class Config:
     def create(self):
         self.path.touch()
 
-    def write(self, text: str):
+    def write(self, data: dict):
         if not self._exists():
             self.create()
         with open(self.path, "w", encoding="utf-8") as f:
-            f.write(text)
+            json.dump(data, f, indent=2)        
 
-    def read(self) -> str | None:
+    def read(self) -> dict | None:
         if not self._exists():
             return None
         with open(self.path, "r", encoding="utf-8") as f:
-            return f.read()
+            return json.load(f)                 

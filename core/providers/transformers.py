@@ -2,14 +2,20 @@ from core.providers.base import LLMProvider
 from transformers import AutoTokenizer, AutoModelForCausalLM, TextIteratorStreamer
 from threading import Thread
 from typing import Iterator
+import torch
 
 
 class TransformersProvider(LLMProvider):
     def __init__(self, model_name: str, device: str = "cpu"):
         self.model_name = model_name
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.model = AutoModelForCausalLM.from_pretrained(model_name)
-        self.model.to(device)
+        self.model = AutoModelForCausalLM.from_pretrained(
+            model_name,
+            torch_dtype=torch.float16 if device != "cpu" else torch.float32,
+            device_map="auto" if device != "cpu" else None,
+        )
+        if device == "cpu":
+            self.model.to(device)
         self.device = device
 
     def _build_input(self, messages: list[dict]) -> dict:

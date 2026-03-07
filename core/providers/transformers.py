@@ -1,9 +1,10 @@
+from core.providers.base import LLMProvider
 from transformers import AutoTokenizer, AutoModelForCausalLM, TextIteratorStreamer
 from threading import Thread
 from typing import Iterator
 
 
-class TransformersProvider:
+class TransformersProvider(LLMProvider):
     def __init__(self, model_name: str, device: str = "cpu"):
         self.model_name = model_name
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)

@@ -61,8 +61,6 @@ class TransformersProvider(LLMProvider):
             skip_special_tokens=True
         )
 
-        streamer = TextIteratorStreamer(self.tokenizer, skip_prompt=True, skip_special_tokens=True)
-
         thread = Thread(
             target=self.model.generate,
             kwargs=dict(

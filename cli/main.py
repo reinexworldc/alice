@@ -12,35 +12,42 @@ from core.providers.openai.provider import OpenAIProvider
 from core.providers.transformers import TransformersProvider
 from rich.console import Console
 from utils.config_utils import Config
-
+from huggingface_hub import login
+from core.providers.config import ProvidersConfig
 
 def main():
     config = Config()
+    data = config.read()
 
-    if not config.exists():
-        print("Choose agent provider (openai / transformers):")
-        agent_provider = input().lower()
+    if not data:
+        config.write({"provider": "", "model": ""})
+        data = {"provider": "", "model": ""}
 
-        if agent_provider == "openai":
-            config.write({"provider": "openai"})
-            agent = ChatAgent(provider=OpenAIProvider())
+    def _data_to_num(data: dict):
+        return {i + 1: key for i, key in enumerate(data)}
 
-        elif agent_provider == "transformers":
-            print("Choose model (llama):")
-            model_name = input().lower()
+    def _print_config(data: dict):
+        for i, name in enumerate(data, start=1):
+            print(f"{i}: {name}")
 
-            if model_name == "llama":
-                config.write({"provider": "transformers", "model": "meta-llama/Llama-3.1-8B"})
-                agent = ChatAgent(provider=TransformersProvider("meta-llama/Llama-3.1-8B"))
+    if data["provider"] == "":
+        print("Select provider")
+        providers = ProvidersConfig.available_providers()
+        _print_config(providers)
+        provider_to_num = _data_to_num(providers)
+        num = int(input())
+        data["provider"] = provider_to_num[num]
 
-    else:
-        data = config.read()
+    if data["model"] == "":
+        print(f"Select model")
+        models = ProvidersConfig.available_models()[data["provider"]]
+        _print_config(models)
+        model_to_num = _data_to_num(models)
+        num = int(input())
+        data["model"] = model_to_num[num]
 
-        if data["provider"] == "openai":
-            agent = ChatAgent(provider=OpenAIProvider())
-        
-        elif data["provider"] == "transfomers":
-            agent = ChatAgent(provider=TransformersProvider(data["model"]))
+    agent = ChatAgent(data["provider"], data["model"])
+    config.write(data)
 
     controller = PromptSessionController()
     parser = ChunkParser()

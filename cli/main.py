@@ -38,16 +38,22 @@ def main():
         num = int(input())
         data["provider"] = provider_to_num[num]
 
+    if ProvidersConfig.requires_auth(data["provider"]):
+        token = input(f"Required token for {data["provider"]}: ")
+        login(token=token)
+
     if data["model"] == "":
         print(f"Select model")
-        models = ProvidersConfig.available_models()[data["provider"]]
+        models = ProvidersConfig.available_models(data["provider"])
         _print_config(models)
         model_to_num = _data_to_num(models)
         num = int(input())
         data["model"] = model_to_num[num]
 
-    agent = ChatAgent(data["provider"], data["model"])
     config.write(data)
+
+    provider = ProvidersConfig.create(data["provider"], data["model"])
+    agent = ChatAgent(provider=provider)
 
     controller = PromptSessionController()
     parser = ChunkParser()

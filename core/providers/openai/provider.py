@@ -4,8 +4,9 @@ from typing import Iterator
 
 
 class OpenAIProvider(LLMProvider):
-    def __init__(self, client: OpenAI | None = None):
+    def __init__(self, model, client: OpenAI | None = None):
         self.client = client or OpenAI()
+        self.model = model
 
     def llm_generate(
         self,
@@ -13,7 +14,7 @@ class OpenAIProvider(LLMProvider):
         tools: list[dict] | None = None,
     ) -> dict:
         response = self.client.chat.completions.create(
-            model="gpt-5.2",
+            model=self.model,
             messages=messages,
             tools=tools,
         )
@@ -26,7 +27,7 @@ class OpenAIProvider(LLMProvider):
 
     def llm_stream(self, messages: list[dict], tools: list[dict]) -> Iterator[dict]:
         stream = self.client.chat.completions.create(
-            model="gpt-5.2",
+            model=self.model,
             messages=messages,
             tools=tools,
             stream=True,

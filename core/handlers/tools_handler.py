@@ -8,7 +8,7 @@ from .memory_handler import MemoryHandler
 
 
 class ToolsHandler:
-    def __init__(self, agent: ChatAgent):
+    def __init__(self, agent: ChatAgent, memory_handler: MemoryHandler):
         self.agent = agent
         self.tool_handlers = {
             "get_directory": AgentTools.get_directory,
@@ -16,7 +16,7 @@ class ToolsHandler:
             "review_code": AgentTools.review_code,
             "apply_patch": AgentTools.apply_patch,
         }
-        self.memory_handler = MemoryHandler()
+        self.memory_handler = memory_handler
 
     # TODO: Separate static methods to utils ?
     @staticmethod
@@ -92,12 +92,12 @@ class ToolsHandler:
             }
         )
 
-    # Future: Return "welcome" message if tool call it's first call.
+    # TODO: Return "welcome" message if tool call it's first call.
     def execute_tool_calls(
         self,
         tools_by_index: dict[int, dict[str, Any]],
     ) -> None:
-        # Mb separate it into uniq func.
+        # TODO: separate it into uniq func.
         self.agent.messages.append(
             {
                 "role": "assistant",
@@ -121,6 +121,10 @@ class ToolsHandler:
             args_string = tool_call["function"]["arguments"]
 
             ToolsHandler.narrate(args_string=args_string, tool_name=tool_name)
+
+            # TODO: Middleware/Context approach for memory saving. 
+            memory_message = f"Tool Call: {tool_name}: {args_string}"
+            self.memory_handler.write_assistant_message(memory_message)
 
             if not args_string or not args_string.strip():
                 continue

@@ -20,6 +20,7 @@ def main():
     config = Config()
     data = config.read()
 
+    # TODO: Separate to unic file.
     if not data:
         config.write({"provider": "", "model": ""})
         data = {"provider": "", "model": ""}

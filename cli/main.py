@@ -15,6 +15,7 @@ from utils.config_utils import Config
 from huggingface_hub import login
 from core.providers.config import ProvidersConfig
 
+
 def main():
     config = Config()
     data = config.read()

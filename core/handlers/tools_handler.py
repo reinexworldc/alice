@@ -124,7 +124,7 @@ class ToolsHandler:
 
             # TODO: Middleware/Context approach for memory saving. 
             memory_message = f"Tool Call: {tool_name}: {args_string}"
-            self.memory_handler.write_assistant_message(memory_message)
+            self.memory_handler.write_message(memory_message, "Assistant")
 
             if not args_string or not args_string.strip():
                 continue

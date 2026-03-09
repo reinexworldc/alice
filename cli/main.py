@@ -91,7 +91,7 @@ def main():
 
             memory.ensure_memory_file()
             if message:
-                memory.write_user_message(message)
+                memory.write_message(message, "User")
 
                 followup_message = message
                 # Future: separate tool call logic.

@@ -44,20 +44,10 @@ class MemoryHandler:
         except OSError as exc:
             raise RuntimeError(f"Failed to write memory file at {file}") from exc
         
-    # TODO: Dry 
-    def write_user_message(self, message: str) -> None:
+    def write_message(self, message: str, role: str) -> None:
         if self.memory_file is None:
             return
 
         self.write_memory(
-            file=self.memory_file, text=message, role="User"
-        )
-
-    # TODO: Dry 
-    def write_assistant_message(self, message: str) -> None:
-        if self.memory_file is None:
-            return
-
-        self.write_memory(
-            file=self.memory_file, text=message, role="Assistant"
+            file=self.memory_file, text=message, role=role
         )

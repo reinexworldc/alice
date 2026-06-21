@@ -1,6 +1,7 @@
 from typing import Any
 
 from cli.views.parser import ChunkParser
+from cli.views.renderer import TerminalRenderer
 from core.agent import ChatAgent
 
 
@@ -11,6 +12,7 @@ class StreamHandler:
         parser: ChunkParser,
         message: str,
         tools: list[dict],
+        renderer: TerminalRenderer,
     ) -> tuple[list[str], list[dict]]:
         chunks: list[str] = []
         raw_chunks: list[dict] = []
@@ -20,7 +22,9 @@ class StreamHandler:
             raw_chunks.append(chunk)
             if chunk.get("content"):
                 content: str = chunk["content"]
-                parser.parse(content)
+                renderer.assistant_chunk(parser.parse(content))
                 chunks.append(content)
+
+        renderer.assistant_end()
 
         return chunks, raw_chunks

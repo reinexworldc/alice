@@ -4,7 +4,13 @@ setup(
     name="alice-agent",
     version="0.1.0",
     packages=find_packages(),
-    install_requires=["pydantic", "openai", "prompt_toolkit", "python-dotenv"],
+    install_requires=[
+        "pydantic",
+        "openai",
+        "prompt_toolkit",
+        "python-dotenv",
+        "rich",
+    ],
     entry_points={
         "console_scripts": [
             "alice=cli.main:main",

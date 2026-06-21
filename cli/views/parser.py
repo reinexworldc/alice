@@ -23,7 +23,7 @@ class ChunkParser(BaseModel):
     ORANGE: ClassVar[str] = "\033[38;5;208m"
     RESET: ClassVar[str] = "\033[0m"
 
-    def parse(self, chunk: str) -> None:
+    def parse(self, chunk: str) -> str:
         """
         Process a text chunk, remove markers, and print with appropriate formatting.
 
@@ -33,10 +33,7 @@ class ChunkParser(BaseModel):
         Returns:
             str: The processed chunk with markers removed.
         """
-        text = chunk
-        output = self._process_markers(text)
-        if output:
-            print(output, end="", flush=True)
+        return self._process_markers(chunk)
 
     def _process_markers(self, text: str) -> str:
         """Extract markers and toggle states, returning text without markers."""
@@ -138,4 +135,4 @@ class ChunkParser(BaseModel):
 
         return "".join(output)
 
-# Future: **bold** processing 
+# Future: **bold** processing

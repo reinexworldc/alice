@@ -12,6 +12,7 @@ from core.handlers.stream_handler import StreamHandler
 from core.handlers.tools_handler import ToolsHandler
 from .prompt import PromptSessionController
 from .views.parser import ChunkParser
+from .views.renderer import TerminalRenderer
 from core.agent import ChatAgent
 from core.helpers.prompt.helper import PromptsHelper
 from core.providers.openai.provider import OpenAIProvider
@@ -70,21 +71,27 @@ def main():
     parser = ChunkParser()
     prompts_helper = PromptsHelper()
     console = Console()
+    renderer = TerminalRenderer(console)
     context = SessionContext(
         agent=agent,
         controller=controller,
         parser=parser,
         prompts_helper=prompts_helper,
         console=console,
+        renderer=renderer,
     )
     memory = MemoryHandler()
-    tools_handler = ToolsHandler(agent=agent, memory_handler=memory)
+    tools_handler = ToolsHandler(
+        agent=agent,
+        memory_handler=memory,
+        renderer=renderer,
+    )
     commands_handler = CommandHandler()
     session = context.controller.session
 
     context.agent.add_system_prompt(context.prompts_helper.system_prompt())
 
-    context.console.clear()
+    context.renderer.clear()
 
     while True:
         try:
@@ -111,6 +118,7 @@ def main():
                         parser=context.parser,
                         message=followup_message,
                         tools=tools,
+                        renderer=renderer,
                     )
                     context.tools_by_index = tools_handler.collect_tool_calls(
                         raw_chunks
@@ -125,7 +133,7 @@ def main():
 
                 llm_message = "".join(chunks)
                 memory.write_message(llm_message, "Assistant")
-            print("")
+            renderer.console.print()
         except KeyboardInterrupt:
             continue
         except EOFError:

@@ -1,4 +1,3 @@
-from core.agent import ChatAgent
 from cli.handlers.context import SessionContext
 from core.helpers.prompt.helper import PromptsHelper
 from core.helpers.prompt.errors import PromptNotFoundError
@@ -10,7 +9,7 @@ class CommandHandler:
 
     def handle_command_if_any(self, context: SessionContext, message: str) -> bool:
         if self.is_command(message):
-            self.handle_command(agent=context.agent, text=message)
+            self.handle_command(context=context, text=message)
             return True
 
         return False
@@ -18,23 +17,25 @@ class CommandHandler:
     def is_command(self, text: str) -> bool:
         return text.startswith("/")
 
-    def handle_command(self, agent: ChatAgent, text: str) -> None:
+    def handle_command(self, context: SessionContext, text: str) -> None:
         parts: list = text[1:].strip().split()
         command: str = parts[0]
         args: list[str] = parts[1:]
 
         if command == "workflow":
             if not args:
-                print("Usage: /workflow <name>")
+                context.renderer.warning("Использование: /workflow <name>")
                 return
 
             workflow = args[0]
 
             try:
-                agent.add_system_prompt(self.prompts_helper.workflow_prompt(workflow))
-                print(f"Switched workflow to '{workflow}'")
+                context.agent.add_system_prompt(
+                    self.prompts_helper.workflow_prompt(workflow)
+                )
+                context.renderer.success(f"Workflow переключён на {workflow}")
 
             except PromptNotFoundError as e:
-                print(f"Error: {e}")
+                context.renderer.error(str(e))
 
             return

@@ -5,7 +5,6 @@ class InputHandler:
     @staticmethod
     def read_user_input(session: PromptSession) -> str | None:
         message: str = session.prompt(
-            "> ",
             default="",
             validate_while_typing=False,
         )

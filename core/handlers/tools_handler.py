@@ -4,11 +4,17 @@ from typing import Any
 
 from core.agent import AgentTools, ChatAgent
 from core.schemas import ToolCall
-from .memory_handler import MemoryHandler 
+from cli.views.renderer import TerminalRenderer
+from .memory_handler import MemoryHandler
 
 
 class ToolsHandler:
-    def __init__(self, agent: ChatAgent, memory_handler: MemoryHandler):
+    def __init__(
+        self,
+        agent: ChatAgent,
+        memory_handler: MemoryHandler,
+        renderer: TerminalRenderer,
+    ):
         self.agent = agent
         self.tool_handlers = {
             "get_directory": AgentTools.get_directory,
@@ -17,6 +23,7 @@ class ToolsHandler:
             "apply_patch": AgentTools.apply_patch,
         }
         self.memory_handler = memory_handler
+        self.renderer = renderer
 
     # TODO: Separate static methods to utils ?
     @staticmethod
@@ -66,22 +73,6 @@ class ToolsHandler:
 
         return tools_by_index
         
-    @staticmethod
-    def narrate(args_string: str, tool_name: str ):
-        name = Path(json.loads(args_string).get("path", "")).name
-        if tool_name == "get_directory":
-            print(f"Looking at dir >> {name}")
-
-        if tool_name == "get_lines":
-            print(f"Checking lines count in >> {name}")
-
-        if tool_name == "review_code":
-            print(f"Looking at file >> {name}")
-
-        # TODO: Diff log.
-        if tool_name == "apply_patch":
-            print(f"Apply patch to file >> {name}")
-
     def _append_tool_message(self, tool_call_id: str, result: Any) -> None:
         content = json.dumps(result) if isinstance(result, dict) else str(result)
         self.agent.messages.append(
@@ -120,21 +111,31 @@ class ToolsHandler:
             tool_name = tool_call["function"]["name"]
             args_string = tool_call["function"]["arguments"]
 
-            ToolsHandler.narrate(args_string=args_string, tool_name=tool_name)
-
-            # TODO: Middleware/Context approach for memory saving. 
+            # TODO: Middleware/Context approach for memory saving.
             memory_message = f"Tool Call: {tool_name}: {args_string}"
             self.memory_handler.write_message(memory_message, "Assistant")
 
             if not args_string or not args_string.strip():
+                result = {"error": f"{tool_name}: missing arguments"}
+                self._append_tool_message(tool_call["id"], result)
+                self.renderer.error(f"{tool_name}: отсутствуют аргументы")
                 continue
 
             try:
                 args = json.loads(args_string)
             except json.JSONDecodeError as e:
-                print(f"Warning: Invalid JSON for tool {tool_name}: {args_string}")
-                print(f"Error: {e}")
+                result = {"error": f"Invalid JSON arguments: {e}"}
+                self._append_tool_message(tool_call["id"], result)
+                self.renderer.error(f"{tool_name}: некорректные аргументы ({e})")
                 continue
+
+            if not isinstance(args, dict):
+                result = {"error": "Tool arguments must be a JSON object"}
+                self._append_tool_message(tool_call["id"], result)
+                self.renderer.error(f"{tool_name}: аргументы должны быть объектом")
+                continue
+
+            self.renderer.action(tool_name, args.get("path", ""))
 
             handler = self.tool_handlers.get(tool_name)
             if handler is None:
@@ -142,6 +143,7 @@ class ToolsHandler:
                     tool_call["id"],
                     {"error": f"Unknown tool: {tool_name}"},
                 )
+                self.renderer.error(f"Неизвестный инструмент: {tool_name}")
                 continue
 
             try:
@@ -150,3 +152,7 @@ class ToolsHandler:
                 result = {"error": str(e)}
 
             self._append_tool_message(tool_call["id"], result)
+            if isinstance(result, dict) and "error" in result:
+                self.renderer.error(f"{tool_name}: {result['error']}")
+            else:
+                self.renderer.success(f"{tool_name} завершён")

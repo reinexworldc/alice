@@ -43,18 +43,28 @@ class TerminalRenderer:
         self._assistant_active = False
         self._at_line_start = False
 
-    def action(self, tool_name: str, path: str = "") -> None:
+    def action(
+        self,
+        tool_name: str,
+        path: str = "",
+        destination: str = "",
+    ) -> None:
         self.assistant_end()
         labels = {
             "get_directory": "Watching directory",
             "get_lines": "Counting lines",
             "review_code": "Reading file",
             "create_file": "Creating file",
+            "move_file": "Moving file",
             "apply_patch": "Modifying file",
         }
         label = labels.get(tool_name, f"Running {tool_name}")
         target = Path(path).name if path else ""
-        suffix = f" {target}" if target else ""
+        destination_target = Path(destination).name if destination else ""
+        if destination_target:
+            suffix = f" {target} → {destination_target}"
+        else:
+            suffix = f" {target}" if target else ""
         self._stop_status()
         self._status_message = f"{label}{suffix}"
         self._status_live = Live(

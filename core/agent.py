@@ -1,6 +1,8 @@
-from core.providers.base import LLMProvider
-from pathlib import Path
 from itertools import islice
+import shutil
+from pathlib import Path
+
+from core.providers.base import LLMProvider
 
 
 # Future: Separate logic.
@@ -151,6 +153,36 @@ class AgentTools:
             "path": str(path),
             "written_characters": written_characters,
             "overwritten": existed and overwrite,
+        }
+
+    @staticmethod
+    def move_file(
+        source: str | Path,
+        destination: str | Path,
+        overwrite: bool = False,
+    ) -> dict:
+        """Rename or move a file, creating destination directories as needed."""
+        source = Path(source).expanduser().resolve()
+        destination = Path(destination).expanduser().resolve()
+
+        if not source.is_file():
+            raise FileNotFoundError(f"Source is not a file: {source}")
+        if source == destination:
+            raise ValueError("Source and destination must be different")
+
+        destination_existed = destination.exists()
+        if destination.is_dir():
+            raise IsADirectoryError(f"Destination is a directory: {destination}")
+        if destination_existed and not overwrite:
+            raise FileExistsError(f"Destination file already exists: {destination}")
+
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(source), str(destination))
+
+        return {
+            "source": str(source),
+            "destination": str(destination),
+            "overwritten": destination_existed,
         }
 
     @staticmethod

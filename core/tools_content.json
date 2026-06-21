@@ -19,6 +19,32 @@
   {
     "type": "function",
     "function": {
+      "name": "move_file",
+      "description": "Rename or move a file and create missing destination directories. Existing destination files are protected unless overwrite is explicitly enabled.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "description": "Existing file to rename or move (relative or absolute path)"
+          },
+          "destination": {
+            "type": "string",
+            "description": "Complete destination file path, including the new filename"
+          },
+          "overwrite": {
+            "type": "boolean",
+            "default": false,
+            "description": "Allow replacing an existing destination file when true"
+          }
+        },
+        "required": ["source", "destination"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
       "name": "create_file",
       "description": "Create a UTF-8 text file and any missing parent directories. Existing files are protected unless overwrite is explicitly enabled.",
       "parameters": {

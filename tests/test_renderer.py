@@ -38,6 +38,19 @@ class TerminalRendererTests(unittest.TestCase):
             "       ✗ Failed to read file\n",
         )
 
+    def test_renders_move_source_and_destination(self):
+        self.renderer.action(
+            "move_file",
+            "/project/before.txt",
+            "/project/nested/after.txt",
+        )
+        self.renderer.success()
+
+        self.assertEqual(
+            self.output.getvalue(),
+            "       ✓ Moving file before.txt → after.txt\n",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

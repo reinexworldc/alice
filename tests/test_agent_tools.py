@@ -107,5 +107,61 @@ class CreateFileTests(unittest.TestCase):
         self.assertTrue(result["overwritten"])
 
 
+class MoveFileTests(unittest.TestCase):
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp_dir.name)
+        self.source = self.root / "before.txt"
+        self.source.write_text("source content", encoding="utf-8")
+
+    def tearDown(self):
+        self.temp_dir.cleanup()
+
+    def test_renames_file(self):
+        destination = self.root / "after.txt"
+
+        result = AgentTools.move_file(self.source, destination)
+
+        self.assertFalse(self.source.exists())
+        self.assertEqual(destination.read_text(encoding="utf-8"), "source content")
+        self.assertEqual(result["destination"], str(destination.resolve()))
+        self.assertFalse(result["overwritten"])
+
+    def test_moves_file_and_creates_destination_directories(self):
+        destination = self.root / "nested" / "after.txt"
+
+        AgentTools.move_file(self.source, destination)
+
+        self.assertFalse(self.source.exists())
+        self.assertEqual(destination.read_text(encoding="utf-8"), "source content")
+
+    def test_refuses_to_overwrite_destination_by_default(self):
+        destination = self.root / "after.txt"
+        destination.write_text("destination content", encoding="utf-8")
+
+        with self.assertRaises(FileExistsError):
+            AgentTools.move_file(self.source, destination)
+
+        self.assertEqual(self.source.read_text(encoding="utf-8"), "source content")
+        self.assertEqual(
+            destination.read_text(encoding="utf-8"),
+            "destination content",
+        )
+
+    def test_can_explicitly_overwrite_destination(self):
+        destination = self.root / "after.txt"
+        destination.write_text("destination content", encoding="utf-8")
+
+        result = AgentTools.move_file(
+            self.source,
+            destination,
+            overwrite=True,
+        )
+
+        self.assertFalse(self.source.exists())
+        self.assertEqual(destination.read_text(encoding="utf-8"), "source content")
+        self.assertTrue(result["overwritten"])
+
+
 if __name__ == "__main__":
     unittest.main()

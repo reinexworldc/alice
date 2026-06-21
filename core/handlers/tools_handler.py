@@ -21,6 +21,7 @@ class ToolsHandler:
             "get_lines": AgentTools.get_lines,
             "review_code": AgentTools.review_code,
             "create_file": AgentTools.create_file,
+            "move_file": AgentTools.move_file,
             "apply_patch": AgentTools.apply_patch,
         }
         self.memory_handler = memory_handler
@@ -136,7 +137,11 @@ class ToolsHandler:
                 self.renderer.error(f"{tool_name}: arguments must be an object")
                 continue
 
-            self.renderer.action(tool_name, args.get("path", ""))
+            self.renderer.action(
+                tool_name,
+                args.get("path", args.get("source", "")),
+                args.get("destination", ""),
+            )
 
             handler = self.tool_handlers.get(tool_name)
             if handler is None:

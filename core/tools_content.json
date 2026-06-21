@@ -62,7 +62,7 @@
     "type": "function",
     "function": {
       "name": "apply_patch",
-      "description": "Modify specific lines in a file by line number. Replaces specified lines with provided content and writes the file back.",
+      "description": "Replace, insert, or delete lines in a file. All line numbers refer to the original file, before any edits are applied.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -72,20 +72,27 @@
           },
           "new_lines": {
             "type": "array",
-            "description": "List of line edits. Each item targets a 1-indexed line number and provides the full replacement content. Include a trailing \\n if you want to preserve the original line break.",
+            "description": "List of line edits. Operation defaults to replace for backward compatibility. Include a trailing \\n in content when the inserted or replacement text should end with a line break.",
             "items": {
               "type": "object",
               "properties": {
                 "line": {
                   "type": "integer",
-                  "description": "Line number to replace (1-indexed)."
+                  "minimum": 1,
+                  "description": "Target line in the original file (1-indexed). insert_before also accepts one line past the end to append."
+                },
+                "operation": {
+                  "type": "string",
+                  "enum": ["replace", "insert_before", "insert_after", "delete"],
+                  "default": "replace",
+                  "description": "Edit operation. content is ignored for delete."
                 },
                 "content": {
                   "type": "string",
-                  "description": "Full replacement content for the line. Example: \"new line 5\\n\""
+                  "description": "Text used by replace or insert operations. It may contain multiple lines."
                 }
               },
-              "required": ["line", "content"]
+              "required": ["line"]
             }
           }
         },

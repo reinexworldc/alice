@@ -128,42 +128,113 @@ class AgentTools:
         return lines
 
     @staticmethod
-    def _normalize_lines(new_lines: dict | list[dict]) -> dict[int, str]:
-        if isinstance(new_lines, list):
-            normalized_lines: dict[int, str] = {}
-            for item in new_lines:
-                if not isinstance(item, dict):
-                    raise TypeError("new_lines items must be objects with line/content")
-                line = item.get("line")
-                if line is None:
-                    raise KeyError("new_lines item missing 'line'")
-                content = item.get("content")
-                normalized_lines[int(line)] = "" if content is None else str(content)
-            return normalized_lines
+    def _normalize_edits(new_lines: dict | list[dict]) -> list[dict]:
+        if isinstance(new_lines, dict):
+            return [
+                {
+                    "operation": "replace",
+                    "line": int(line_num),
+                    "content": "" if content is None else str(content),
+                }
+                for line_num, content in new_lines.items()
+            ]
 
-        return {
-            int(line_num): "" if new_content is None else str(new_content)
-            for line_num, new_content in new_lines.items()
-        }
+        if not isinstance(new_lines, list):
+            raise TypeError("new_lines must be an object or a list of edits")
 
-    # TODO: Works only for replace, not for add.
+        edits = []
+        for item in new_lines:
+            if not isinstance(item, dict):
+                raise TypeError("new_lines items must be objects")
+            if "line" not in item:
+                raise KeyError("new_lines item missing 'line'")
+
+            operation = str(item.get("operation", "replace"))
+            if operation not in {"replace", "insert_before", "insert_after", "delete"}:
+                raise ValueError(f"Unknown patch operation: {operation}")
+            if operation != "delete" and "content" not in item:
+                raise KeyError(f"{operation} operation missing 'content'")
+
+            edits.append(
+                {
+                    "operation": operation,
+                    "line": int(item["line"]),
+                    "content": str(item.get("content", "")),
+                }
+            )
+
+        return edits
+
     @staticmethod
-    def apply_patch(new_lines: dict | list[dict], path: str | Path):
+    def apply_patch(new_lines: dict | list[dict], path: str | Path) -> dict:
+        """Apply line-based replacements, insertions, and deletions to a file.
+
+        All line numbers refer to the original file. Edits are applied from the
+        bottom upwards so an earlier insertion or deletion cannot shift a later
+        target. Omitting ``operation`` keeps the legacy replacement behavior.
+        """
         path = Path(path).expanduser().resolve()
-        # TODO: Separate into uniq func for each tool.
         if not path.is_file():
             raise IsADirectoryError(f"Path is not a file: {path}")
 
-        with open(path, "r") as f:
+        with open(path, "r", encoding="utf-8") as f:
             lines = f.readlines()
 
-        normalized_lines = AgentTools._normalize_lines(new_lines)
+        edits = AgentTools._normalize_edits(new_lines)
+        line_count = len(lines)
+        seen_targets = set()
+        replace_or_delete_lines = set()
 
-        for line_num, new_content in normalized_lines.items():
-            lines[int(line_num) - 1] = new_content  # -1 because list is 0-indexed
+        for edit in edits:
+            operation = edit["operation"]
+            line_num = edit["line"]
+            max_line = line_count + 1 if operation == "insert_before" else line_count
 
-        with open(path, "w") as f:
+            if line_num < 1 or line_num > max_line:
+                raise IndexError(
+                    f"Line {line_num} is out of range for {operation}; "
+                    f"expected 1..{max_line}"
+                )
+
+            target = (line_num, operation)
+            if target in seen_targets:
+                raise ValueError(f"Duplicate {operation} operation for line {line_num}")
+            seen_targets.add(target)
+
+            if operation in {"replace", "delete"}:
+                if line_num in replace_or_delete_lines:
+                    raise ValueError(f"Conflicting edits for line {line_num}")
+                replace_or_delete_lines.add(line_num)
+
+        priority = {
+            "insert_after": 3,
+            "replace": 2,
+            "delete": 2,
+            "insert_before": 1,
+        }
+        edits.sort(
+            key=lambda edit: (edit["line"], priority[edit["operation"]]),
+            reverse=True,
+        )
+
+        for edit in edits:
+            operation = edit["operation"]
+            index = edit["line"] - 1
+            content = edit["content"]
+
+            if operation == "replace":
+                lines[index] = content
+            elif operation == "insert_before":
+                lines.insert(index, content)
+            elif operation == "insert_after":
+                lines.insert(index + 1, content)
+            else:
+                del lines[index]
+
+        with open(path, "w", encoding="utf-8") as f:
             f.writelines(lines)
+
+        return {"path": str(path), "applied_edits": len(edits)}
 
     @staticmethod
     def get_directory(path: str | Path) -> dict:

@@ -118,7 +118,7 @@ class ToolsHandler:
             if not args_string or not args_string.strip():
                 result = {"error": f"{tool_name}: missing arguments"}
                 self._append_tool_message(tool_call["id"], result)
-                self.renderer.error(f"{tool_name}: отсутствуют аргументы")
+                self.renderer.error(f"{tool_name}: missing arguments")
                 continue
 
             try:
@@ -126,13 +126,13 @@ class ToolsHandler:
             except json.JSONDecodeError as e:
                 result = {"error": f"Invalid JSON arguments: {e}"}
                 self._append_tool_message(tool_call["id"], result)
-                self.renderer.error(f"{tool_name}: некорректные аргументы ({e})")
+                self.renderer.error(f"{tool_name}: invalid arguments ({e})")
                 continue
 
             if not isinstance(args, dict):
                 result = {"error": "Tool arguments must be a JSON object"}
                 self._append_tool_message(tool_call["id"], result)
-                self.renderer.error(f"{tool_name}: аргументы должны быть объектом")
+                self.renderer.error(f"{tool_name}: arguments must be an object")
                 continue
 
             self.renderer.action(tool_name, args.get("path", ""))
@@ -143,7 +143,7 @@ class ToolsHandler:
                     tool_call["id"],
                     {"error": f"Unknown tool: {tool_name}"},
                 )
-                self.renderer.error(f"Неизвестный инструмент: {tool_name}")
+                self.renderer.error(f"Unknown tool: {tool_name}")
                 continue
 
             try:
@@ -153,6 +153,6 @@ class ToolsHandler:
 
             self._append_tool_message(tool_call["id"], result)
             if isinstance(result, dict) and "error" in result:
-                self.renderer.error(f"{tool_name}: {result['error']}")
+                self.renderer.error(str(result["error"]))
             else:
-                self.renderer.success(f"{tool_name} завершён")
+                self.renderer.success()

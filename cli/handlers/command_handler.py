@@ -24,7 +24,7 @@ class CommandHandler:
 
         if command == "workflow":
             if not args:
-                context.renderer.warning("Использование: /workflow <name>")
+                context.renderer.warning("Usage: /workflow <name>")
                 return
 
             workflow = args[0]
@@ -33,7 +33,7 @@ class CommandHandler:
                 context.agent.add_system_prompt(
                     self.prompts_helper.workflow_prompt(workflow)
                 )
-                context.renderer.success(f"Workflow переключён на {workflow}")
+                context.renderer.success(f"Workflow switched to {workflow}")
 
             except PromptNotFoundError as e:
                 context.renderer.error(str(e))

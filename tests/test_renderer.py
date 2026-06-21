@@ -29,14 +29,13 @@ class TerminalRendererTests(unittest.TestCase):
 
     def test_renders_tool_statuses(self):
         self.renderer.action("review_code", "/project/core/agent.py")
-        self.renderer.success("review_code завершён")
-        self.renderer.error("Не удалось прочитать файл")
+        self.renderer.success()
+        self.renderer.error("Failed to read file")
 
         self.assertEqual(
             self.output.getvalue(),
-            "       … Читаю файл agent.py\n"
-            "       ✓ review_code завершён\n"
-            "       ✗ Не удалось прочитать файл\n",
+            "       ✓ Reading file agent.py\n"
+            "       ✗ Failed to read file\n",
         )
 
 

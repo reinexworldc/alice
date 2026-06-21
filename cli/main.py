@@ -124,7 +124,7 @@ def main():
                     followup_message = "continue"
 
                 llm_message = "".join(chunks)
-                memory.write_assistant_message(llm_message)
+                memory.write_message(llm_message, "Assistant")
             print("")
         except KeyboardInterrupt:
             continue

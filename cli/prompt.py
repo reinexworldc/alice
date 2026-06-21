@@ -10,7 +10,7 @@ class PromptSessionController:
 
     def _create_prompt_session(self) -> PromptSession:
         return PromptSession(
-            message=HTML("<prompt> </prompt>"),
+            message=HTML("<prompt>Enter: send · Esc+Enter: new line</prompt> "),
             multiline=True,
             key_bindings=self.kb_settings.get_bindings(),
             prompt_continuation=(lambda width, line_number, is_soft_wrap: ""),

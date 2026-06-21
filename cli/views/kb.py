@@ -9,15 +9,13 @@ class KeyBindingSettings:
     def _setup_bindings(self):
         @self.kb.add("enter")
         def _(event):
-            """
-            Enter inserts a newline (multiline compose mode)
-            """
-            event.current_buffer.insert_text("\n")
+            """Submit the current message."""
+            event.current_buffer.validate_and_handle()
 
         @self.kb.add("escape", "enter")
         def _(event):
-            """Escape + Enter sumbits the input"""
-            event.current_buffer.validate_and_handle()
+            """Escape + Enter inserts a newline."""
+            event.current_buffer.insert_text("\n")
 
         @self.kb.add("tab")
         def _(event):

@@ -89,7 +89,11 @@ def main():
     commands_handler = CommandHandler()
     session = context.controller.session
 
-    context.agent.add_system_prompt(context.prompts_helper.system_prompt())
+    system_prompt = context.prompts_helper.system_prompt().format(
+        provider=data["provider"],
+        model=data["model"],
+    )
+    context.agent.add_system_prompt(system_prompt)
 
     context.renderer.clear()
 

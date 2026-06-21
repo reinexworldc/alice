@@ -1,3 +1,9 @@
+from pathlib import Path
+
+from dotenv import load_dotenv
+from huggingface_hub import login
+from rich.console import Console
+
 from .handlers.command_handler import CommandHandler
 from .handlers.context import SessionContext
 from .handlers.input_handler import InputHandler
@@ -10,13 +16,13 @@ from core.agent import ChatAgent
 from core.helpers.prompt.helper import PromptsHelper
 from core.providers.openai.provider import OpenAIProvider
 from core.providers.transformers import TransformersProvider
-from rich.console import Console
 from utils.config_utils import Config
-from huggingface_hub import login
 from core.providers.config import ProvidersConfig
 
 
 def main():
+    load_dotenv(Path(__file__).resolve().parents[1] / ".env")
+
     config = Config()
     data = config.read()
 
@@ -40,9 +46,12 @@ def main():
         num = int(input())
         data["provider"] = provider_to_num[num]
 
-    if ProvidersConfig.requires_auth(data["provider"]):
-        token = input(f"Required token for {data["provider"]}: ")
-        login(token=token)
+    if ProvidersConfig.supports_optional_auth(data["provider"]):
+        token = input(
+            "Hugging Face token (optional, press Enter to skip): "
+        ).strip()
+        if token:
+            login(token=token)
 
     if data["model"] == "":
         print(f"Select model")

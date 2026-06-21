@@ -14,7 +14,7 @@ class ProvidersConfig:
         "transformers": ["meta-llama/Llama-3.1-8B", "Qwen/Qwen2.5-1.5B-Instruct"],
     }
 
-    _requires_auth = {"transformers"}
+    _optional_auth = {"transformers"}
 
     @classmethod
     def available_providers(cls) -> list[str]:
@@ -31,5 +31,5 @@ class ProvidersConfig:
         return cls._providers[provider](model)
     
     @classmethod
-    def requires_auth(cls, provider: str) -> bool:
-        return provider in cls._requires_auth
+    def supports_optional_auth(cls, provider: str) -> bool:
+        return provider in cls._optional_auth

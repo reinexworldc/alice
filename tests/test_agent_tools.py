@@ -67,5 +67,45 @@ class ApplyPatchTests(unittest.TestCase):
         self.assertEqual(self.path.read_text(encoding="utf-8"), original)
 
 
+class CreateFileTests(unittest.TestCase):
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp_dir.name)
+
+    def tearDown(self):
+        self.temp_dir.cleanup()
+
+    def test_creates_file_and_parent_directories(self):
+        path = self.root / "nested" / "example.txt"
+
+        result = AgentTools.create_file(path=path, content="Hello, Alice!\n")
+
+        self.assertEqual(path.read_text(encoding="utf-8"), "Hello, Alice!\n")
+        self.assertEqual(result["written_characters"], 14)
+        self.assertFalse(result["overwritten"])
+
+    def test_refuses_to_overwrite_existing_file_by_default(self):
+        path = self.root / "example.txt"
+        path.write_text("original", encoding="utf-8")
+
+        with self.assertRaises(FileExistsError):
+            AgentTools.create_file(path=path, content="replacement")
+
+        self.assertEqual(path.read_text(encoding="utf-8"), "original")
+
+    def test_can_explicitly_overwrite_existing_file(self):
+        path = self.root / "example.txt"
+        path.write_text("original", encoding="utf-8")
+
+        result = AgentTools.create_file(
+            path=path,
+            content="replacement",
+            overwrite=True,
+        )
+
+        self.assertEqual(path.read_text(encoding="utf-8"), "replacement")
+        self.assertTrue(result["overwritten"])
+
+
 if __name__ == "__main__":
     unittest.main()

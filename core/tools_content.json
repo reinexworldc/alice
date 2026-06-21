@@ -19,6 +19,33 @@
   {
     "type": "function",
     "function": {
+      "name": "create_file",
+      "description": "Create a UTF-8 text file and any missing parent directories. Existing files are protected unless overwrite is explicitly enabled.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path of the file to create (relative or absolute)"
+          },
+          "content": {
+            "type": "string",
+            "default": "",
+            "description": "Complete initial content of the file"
+          },
+          "overwrite": {
+            "type": "boolean",
+            "default": false,
+            "description": "Allow replacing an existing file when true"
+          }
+        },
+        "required": ["path"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
       "name": "get_lines",
       "description": "Get the number of lines in a file",
       "parameters": {

@@ -49,6 +49,7 @@ class TerminalRenderer:
             "get_directory": "Watching directory",
             "get_lines": "Counting lines",
             "review_code": "Reading file",
+            "create_file": "Creating file",
             "apply_patch": "Modifying file",
         }
         label = labels.get(tool_name, f"Running {tool_name}")

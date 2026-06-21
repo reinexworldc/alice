@@ -128,6 +128,32 @@ class AgentTools:
         return lines
 
     @staticmethod
+    def create_file(
+        path: str | Path,
+        content: str = "",
+        overwrite: bool = False,
+    ) -> dict:
+        """Create a UTF-8 text file and any missing parent directories."""
+        path = Path(path).expanduser().resolve()
+        existed = path.exists()
+
+        if path.is_dir():
+            raise IsADirectoryError(f"Path is a directory: {path}")
+        if existed and not overwrite:
+            raise FileExistsError(f"File already exists: {path}")
+
+        path.parent.mkdir(parents=True, exist_ok=True)
+        mode = "w" if overwrite else "x"
+        with open(path, mode, encoding="utf-8") as file:
+            written_characters = file.write(content)
+
+        return {
+            "path": str(path),
+            "written_characters": written_characters,
+            "overwritten": existed and overwrite,
+        }
+
+    @staticmethod
     def _normalize_edits(new_lines: dict | list[dict]) -> list[dict]:
         if isinstance(new_lines, dict):
             return [

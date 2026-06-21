@@ -20,6 +20,7 @@ class ToolsHandler:
             "get_directory": AgentTools.get_directory,
             "get_lines": AgentTools.get_lines,
             "review_code": AgentTools.review_code,
+            "create_file": AgentTools.create_file,
             "apply_patch": AgentTools.apply_patch,
         }
         self.memory_handler = memory_handler
